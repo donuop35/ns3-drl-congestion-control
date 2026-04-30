@@ -1,0 +1,15 @@
+.DS_Store
+Thumbs.db
+.env
+*.key
+*.pem
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.log
+media.mp4
+*.mov
+*.mp4
