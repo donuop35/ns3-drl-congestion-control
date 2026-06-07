@@ -1,29 +1,99 @@
+# Change 01: Project Charter
+
 ## Why
 
-本期末專題須在學期末前完成一套可重現、可驗收、可展示的深度強化學習 (DRL) 研究 pipeline，主題為「以 DRL 進行單一瓶頸鏈路壅塞控制與吞吐量最佳化」。目前專案尚缺乏凍結的研究方向文件、明確的 MVP 邊界、以及可供整學期遵循的工具鏈與驗收標準，需要在正式實作開始前先建立 project charter 作為唯一真相文件。
+本專案需要一份正式的 project charter 作為整學期的 **single source of truth**（唯一真相來源）。
+
+若沒有 project charter：
+
+- 研究方向需求散落在聊天紀錄，無法追蹤
+- Antigravity 實作可能自行偏離成 IPFS、QUIC、multi-agent 等非 MVP 範疇
+- 後續 OpenSpec changes 無法有明確的上游規格作為依據
+- 容易在沒有完成 baseline 的情況下直接跳去做 DQN
+- 期末驗收時無法確認「做了什麼、沒做什麼、為什麼這樣設計」
+
+本 project charter 的存在，是為了讓整個學期的研究工作可以：
+
+- 按照明確的 scope 推進，不跑偏
+- 讓每一個後續 OpenSpec change 都有一個明確的上游依據
+- 確保 Antigravity 只在被允許的範疇內執行任務
+- 讓 spec owner 在任何時間點都能驗收當前進度
 
 ## What Changes
 
-- 建立 `openspec/changes/project-charter/` 作為研究方向凍結的正式 OpenSpec change
-- 凍結研究題目、研究目標、MDP 定義初版、工具鏈選擇、實驗情境
-- 明確列出 MVP 必做清單與 Non-goals（不得在未經 Spec Owner 同意下納入的項目）
-- 定義五個後續 OpenSpec changes 的順序與啟動條件
-- 建立 Risk Register 初版
-- 建立 Acceptance Criteria，作為整學期期末驗收依據
+本 change 新增以下內容（僅限文件，不含任何程式實作）：
 
-## Capabilities
+- **project title**（中文、英文、GitHub 簡版），正式凍結
+- **project mission**（本專題使命說明）
+- **project background**（研究背景，包含 TCP 壅塞控制歷史與 DRL 動機）
+- **problem statement**（為何現有 TCP 演算法有改善空間）
+- **proposed direction**（以 DRL 解決 congestion control 問題的核心策略）
+- **scope**（本學期 MVP 必做清單）
+- **non-scope**（明確不做的項目）
+- **strict non-goals**（完全禁止的研究方向）
+- **baseline freeze**（NewReno、CUBIC、BBR 固定）
+- **metrics freeze**（throughput、RTT、loss、utility、reward curve）
+- **MVP definition**（DQN first，PPO as future extension）
+- **downstream change map**（change-02、03、04 的啟動條件與依賴）
+- **risk register**（主要風險項目與降階方案）
 
-### New Capabilities
+## What Does Not Change
 
-- `project-charter`: 凍結本期末專案的研究方向、MVP 邊界、工具鏈、MDP 初版定義、實驗情境、Metrics、Risk Register 與 Acceptance Criteria；作為後續所有 OpenSpec changes 的基礎契約文件
+本 change **不包含**且**不允許**的任何事項：
 
-### Modified Capabilities
-
-<!-- 目前 openspec/specs/ 尚無既有 spec，無 modified capabilities -->
+- ❌ 不寫任何程式碼（Python、C++、shell script）
+- ❌ 不建立 ns-3 simulation 或 topology
+- ❌ 不安裝或使用 ns3-gym 作為實作步驟
+- ❌ 不訓練任何 DRL agent（DQN、PPO）
+- ❌ 不執行任何 baseline benchmark
+- ❌ 不實作 IPFS
+- ❌ 不實作 QUIC
+- ❌ 不修改 Linux kernel TCP stack
+- ❌ 不引入 multi-agent RL
+- ❌ 不引入 multi-path routing
+- ❌ 不宣稱已有實驗結果
+- ❌ 不更改凍結後的研究題目
 
 ## Impact
 
-- 影響後續所有 OpenSpec changes（02–05）的啟動條件與驗收標準
-- 明確界定 ns-3、ns3-gym、Stable-Baselines3、DQN 為本學期核心工具鏈，其他工具需 Spec Owner 核准才能引入
-- 明確排除 IPFS、QUIC、multi-agent RL、Linux kernel TCP、large-scale topology 等非 MVP 範疇
-- 確立 Change 01 完成後才可啟動 Change 02（ns3-baseline-benchmark）
+本 change 對後續所有 OpenSpec changes 具有直接上游影響：
+
+| 下游 Change | 依賴本 charter 的內容 |
+|-------------|----------------------|
+| **change-02-baseline-benchmark** | baseline 選擇（NewReno/CUBIC/BBR）、metrics 定義（throughput/RTT/loss/utility）、topology 邊界（single bottleneck）、scenario 設定 |
+| **change-03-ns3gym-environment** | MDP 定義（state/action/reward/episode）、RL interface 選擇（ns3-gym）、observation space 邊界 |
+| **change-04-dqn-mvp-agent** | MVP 演算法選擇（DQN first）、evaluation philosophy（honest comparison，不偽造結果）、success definition |
+
+在本 charter 未經 spec owner 確認前，任何下游 change 均不得啟動。
+
+## Dependencies
+
+本 change 依賴以下前置工作（已完成或確認）：
+
+- ✅ Phase 0 final topic decision（題目已凍結）
+- ✅ Phase 1 proposal formulation（proposal 簡報已完成）
+- ✅ Official OpenSpec v1.4.1 installed（`npm install -g @fission-ai/openspec@latest`）
+- ✅ OpenSpec Antigravity integration updated（`openspec update --force`）
+- 📖 ns-3 TCP model documentation（待 change-02 引用）
+- 📖 ns3-gym official documentation（待 change-03 引用）
+- 📖 Stable-Baselines3 DQN docs（待 change-04 引用）
+- 📖 Aurora / Pantheon related work（已納入 docs/related_work.md）
+
+## Acceptance Criteria
+
+spec owner 驗收本 change 的條件（全部需完成）：
+
+- [ ] 官方 OpenSpec v1.4.1 已安裝並驗證（`openspec --version` = 1.4.1）
+- [ ] `.agent/skills/openspec-*/SKILL.md` 存在（官方 Antigravity integration）
+- [ ] `.agent/workflows/opsx-*.md` 存在（官方 workflow 檔案）
+- [ ] `openspec status --change "project-charter"` 顯示 `4/4 artifacts complete`
+- [ ] 研究題目（中文、英文、GitHub 版）明確凍結在本 charter 中
+- [ ] Scope（In / Out / Non-goals）邊界清楚定義
+- [ ] Baseline（NewReno、CUBIC、BBR）正式凍結
+- [ ] Metrics（throughput、RTT、loss、utility、reward curve）正式凍結
+- [ ] MVP（DQN first，PPO as future extension）正式凍結
+- [ ] MDP 初版定義（state、action、reward、episode）已記錄
+- [ ] Risk register 涵蓋至少 12 個主要風險項目
+- [ ] Downstream change map 清楚說明 change-02/03/04 的依賴
+- [ ] 本 change 不包含任何程式碼、ns-3 實驗、ns3-gym 環境、DQN 訓練
+- [ ] spec owner 簽核：「已確認方向，同意進入 change-02」

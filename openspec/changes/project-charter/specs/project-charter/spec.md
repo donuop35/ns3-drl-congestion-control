@@ -1,180 +1,123 @@
-## ADDED Requirements
+# Project Charter
 
-### Requirement: Project Title and Research Goal are frozen
-The system (this project) SHALL be identified by the following fixed title and research goal for the entire semester. No change to the title, thesis, or core research direction is permitted without explicit Spec Owner approval.
+## Purpose
 
-**Project Title (Chinese)**: 以深度強化學習進行單一瓶頸鏈路壅塞控制與吞吐量最佳化  
-**Project Title (English)**: Deep Reinforcement Learning for Congestion Control and Throughput Optimization over a Single Bottleneck Link  
-**GitHub Title**: DRL-Based Congestion Control over a Bottleneck Link  
-**Thesis Statement**: 本研究將單一瓶頸鏈路的壅塞控制建模為深度強化學習問題，透過 ns-3 / ns3-gym 建立可重現的網路模擬環境，讓 agent 學習在 throughput、RTT 與 packet loss 之間取得更好的控制折衷，並與傳統 TCP baseline 進行比較。
+本文件是「DRL-Based Congestion Control over a Bottleneck Link」期末專題的 **single source of truth（唯一真相來源）**。
 
-#### Scenario: Title is referenced in all deliverables
-- **WHEN** any deliverable (README, PPT, report, figure) is created
-- **THEN** it MUST use the frozen project title as defined above without modification
+所有後續 OpenSpec changes 的 proposal.md、design.md、tasks.md 均必須以本 charter 作為上游規格依據。任何與本 charter 衝突的任務或決策，必須先回報 spec owner，取得明確批准後才能推進。
 
 ---
 
-### Requirement: MVP scope is defined and frozen
-The project SHALL complete exactly the following five OpenSpec changes in order. Additional changes require Spec Owner approval.
+## Project Mission
 
-**Change sequence**:
-1. `project-charter` — Research direction freezing and charter document (**this change**)
-2. `ns3-baseline-benchmark` — ns-3 single bottleneck TCP baseline (NewReno, CUBIC, optional BBR)
-3. `ns3-gym-environment` — ns3-gym RL environment with smoke test
-4. `dqn-mvp-agent` — Stable-Baselines3 DQN training and evaluation
-5. `reporting-figures-and-demo` — Final deliverables, figures, README, PPT assets
-
-#### Scenario: Change execution order is enforced
-- **WHEN** a new change is proposed
-- **THEN** it MUST only begin after the preceding change is complete and confirmed by Spec Owner
-
-#### Scenario: Non-MVP work is blocked
-- **WHEN** any task involves IPFS, QUIC, multi-agent RL, Linux kernel modification, large topology, or real Internet deployment
-- **THEN** the implementation agent MUST stop and report to Spec Owner before proceeding
+> 本研究將單一瓶頸鏈路的壅塞控制建模為深度強化學習問題，透過 ns-3 / ns3-gym 建立可重現的網路模擬環境，讓 agent 學習在 throughput、RTT 與 packet loss 之間取得更好的控制折衷，並與傳統 TCP baseline 進行比較。
 
 ---
 
-### Requirement: Toolchain is frozen
-The project SHALL use the following toolchain. No alternatives may be substituted without Spec Owner approval.
+## Project Title（正式凍結）
 
-| Component | Tool | Version Constraint |
-|-----------|------|-------------------|
-| Simulator | ns-3 | >= 3.32 (BBR support) |
-| RL Interface | ns3-gym | Latest compatible with target ns-3 |
-| RL Framework | Stable-Baselines3 | >= 1.8.0 |
-| MVP Algorithm | DQN | Stable-Baselines3 DQN |
-| Analysis | Python 3.9+ | numpy, pandas, matplotlib |
-| Spec Management | OpenSpec | v1.4.1 (installed) |
+| 版本 | 標題 |
+|------|------|
+| **中文正式題目** | 以深度強化學習進行單一瓶頸鏈路壅塞控制與吞吐量最佳化 |
+| **英文正式題目** | Deep Reinforcement Learning for Congestion Control and Throughput Optimization over a Single Bottleneck Link |
+| **GitHub / README 簡版** | DRL-Based Congestion Control over a Bottleneck Link |
 
-#### Scenario: Alternative tool is proposed
-- **WHEN** the implementation agent proposes using a tool not in the frozen toolchain
-- **THEN** it MUST present the proposal to Spec Owner and wait for approval before installing or using it
+上述題目**不得更改**，任何更改需要 spec owner 明確批准並新開 OpenSpec change。
 
 ---
 
-### Requirement: MDP formulation initial version is defined
-The project SHALL model congestion control as an MDP with the following initial definition. Changes to MDP structure require design.md update and Spec Owner confirmation.
+## Research Background
 
-**Environment**: Single bottleneck link: `sender → bottleneck link → receiver`  
-**Agent**: DRL congestion-control agent selecting discrete rate-control actions  
-**Observation (initial)**: `[throughput_norm, rtt_norm, loss_rate, cwnd_signal_norm]` (4-dimensional)  
-**Action space**: Discrete(3) — {0: decrease, 1: keep, 2: increase}  
-**Reward**: `r_t = α·throughput_t − β·RTT_t − γ·loss_t` (α, β, γ TBD by smoke test)  
-**Episode length**: 60s (initial, may adjust after smoke test)  
-**Decision interval**: 500ms (initial, may adjust after smoke test)
+### 網路壅塞控制的重要性
 
-#### Scenario: Observation definition matches design
-- **WHEN** the ns3-gym environment is implemented
-- **THEN** each observation dimension MUST be documented in Change 03 design.md with: name, unit, source, sampling interval, normalization method
+網路壅塞控制（Congestion Control）是確保網路穩定傳輸的核心機制。發送端必須動態調整傳輸速率，避免超過瓶頸鏈路的承載能力，否則將導致：
 
-#### Scenario: Action space remains discrete for MVP
-- **WHEN** implementing the DQN agent
-- **THEN** the action space MUST remain Discrete(3) unless Spec Owner explicitly approves a continuous action space
+- 封包佇列溢出（Queue overflow）→ 封包遺失（Packet loss）
+- RTT（Round-Trip Time）大幅上升（Bufferbloat 問題）
+- 網路吞吐量崩潰（Congestion collapse）
 
-#### Scenario: Reward does not optimize throughput alone
-- **WHEN** the reward function is implemented
-- **THEN** it MUST include at least one delay or loss penalty term, and MUST NOT be a pure throughput maximization objective
+### 傳統 TCP 演算法的限制
 
----
+- **NewReno**（RFC 6582）：依靠 packet loss 作為壅塞信號，使用 AIMD 控制，保守但在高 BDP 網路效率低
+- **CUBIC**（RFC 8312）：Linux 預設演算法，cubic growth function，更積極但仍是 loss-based
+- **BBR**（Google 2016）：model-based 方法，估計 bottleneck bandwidth 和 min-RTT，但在高 loss 場景表現不穩定
 
-### Requirement: Baselines are defined and must be run before DRL
-The project SHALL complete TCP baseline benchmarks BEFORE any RL environment or DRL training begins.
+傳統算法都使用**手刻規則（hand-crafted heuristics）**，難以適應複雜多變的網路條件。
 
-**Required baselines**: NewReno, CUBIC  
-**Strongly preferred**: BBR (if ns-3 version supports it and integration cost is acceptable)  
-**Blocking rule**: BBR MUST NOT block Change 02 completion if integration takes > 1 working day
+### 為什麼 DRL 適合解決此問題
 
-#### Scenario: Baselines produce reproducible output
-- **WHEN** baseline benchmarks are run
-- **THEN** they MUST produce CSV logs for throughput, RTT, and packet loss; and MUST use fixed random seeds specified in `experiments/configs/`
-
-#### Scenario: BBR is optional
-- **WHEN** BBR integration fails after 1 working day of effort
-- **THEN** BBR MUST be moved to optional/future work and documented in Change 02 README
+1. **DRL 可學習複雜決策策略**：不需手刻規則，agent 直接從網路狀態中學習最優控制策略
+2. **端到端優化**：可直接優化一個複合 utility 函數（throughput - delay - loss），而非只關注某一個指標
+3. **適應性**：訓練好的 policy 理論上可適應不同網路條件
+4. **可解釋的 MDP 建模**：壅塞控制本身天然符合 MDP 結構（有狀態、有動作、有 reward）
 
 ---
 
-### Requirement: Metrics are defined and must be produced
-The project SHALL produce the following metrics for both baseline and DRL evaluation.
+## Research Target
 
-**Required metrics**:
-1. Average throughput (Mbps)
-2. Average RTT (ms)
-3. Packet loss rate (%)
-4. Utility score (composite metric)
-5. Reward curve (DRL training)
-6. Baseline comparison table
+本專題的核心研究目標包含：
 
-**Optional metrics**: Queue occupancy, Jain's fairness index, convergence stability
-
-#### Scenario: Utility score is defined before comparison
-- **WHEN** producing baseline vs. DRL comparison
-- **THEN** utility score formula MUST be defined in design.md and applied consistently to both baseline and DRL results
+1. **Single bottleneck congestion control**：在 `sender → bottleneck link → receiver` 的拓樸下建立可控的壅塞場景
+2. **Sender-side control abstraction**：agent 控制傳送端的送率或 cwnd-like 控制訊號，不需修改 kernel
+3. **DRL formulation**：將壅塞控制建模為 MDP，定義清楚的 state / action / reward / episode
+4. **Baseline comparison**：與 NewReno、CUBIC（+ BBR）進行公平的 throughput / RTT / loss / utility 比較
 
 ---
 
-### Requirement: Experiment scenarios are defined
-The project SHALL run experiments in at least 2 of the following 3 scenarios.
+## MDP 初版定義（凍結）
 
-**Scenario A (required)**: Stable low-latency bottleneck — baseline bandwidth 10 Mbps, RTT 20ms, no background traffic  
-**Scenario B (required)**: Stable high-latency bottleneck — baseline bandwidth 10 Mbps, RTT 100ms, no background traffic  
-**Scenario C (optional)**: Dynamic/disturbed bottleneck — varying background traffic or link capacity changes  
-
-#### Scenario: All experiments use fixed random seeds
-- **WHEN** any experiment (baseline or DRL) is run
-- **THEN** the random seed MUST be fixed and recorded in `experiments/configs/<scenario-name>.yaml`
-
-#### Scenario: Scenario C does not block MVP
-- **WHEN** Scenario C integration cost is high
-- **THEN** it MUST be deferred to optional/future work without blocking Changes 02–05
+| 元素 | 定義 |
+|------|------|
+| **Environment** | ns-3 single bottleneck simulation |
+| **Agent** | DRL congestion-control agent |
+| **State space** | `[throughput_norm, rtt_norm, loss_rate, cwnd_signal_norm]`（4-dim，待 Change 03 確認） |
+| **Action space** | `Discrete(3)`：{0: decrease, 1: keep, 2: increase} |
+| **Reward** | `r_t = α·throughput_t − β·RTT_t − γ·loss_t` |
+| **Episode length** | 60 秒（初版，待 smoke test 後調整） |
+| **Decision interval** | 500ms（初版，待 smoke test 後調整） |
 
 ---
 
-### Requirement: Final deliverables are defined
-The project SHALL produce the following final deliverables to be considered complete.
+## Success Definition
 
-**Required deliverables**:
-1. GitHub repository with complete README (reproducible by third party)
-2. Baseline benchmark results (CSV + figures)
-3. ns3-gym smoke test log
-4. DQN training reward curve
-5. DRL vs. baseline comparison figure
-6. Throughput / RTT / loss / utility comparison table
-7. Network topology diagram
-8. MDP diagram (state / action / reward)
-9. Final report outline
-10. PPT/slide assets
-11. 10-minute demo script
+### 成功 = 以下條件均達成
 
-#### Scenario: DRL underperforms baseline
-- **WHEN** DQN results do not outperform TCP baselines
-- **THEN** the agent MUST produce honest trade-off analysis and MUST NOT fabricate or exaggerate results
+- [x] 研究方向清楚，不偏離凍結題目
+- [x] Baseline（NewReno/CUBIC）可重現執行，產出 CSV log
+- [x] ns3-gym environment 可 reset / step，random agent 可跑完 1 個 episode
+- [x] DQN 訓練腳本可完成訓練，產出 reward curve
+- [x] 至少有一張 DRL vs baseline comparison 圖表
+- [x] GitHub repo 可被第三方依 README 重現主要流程
+- [x] 10 分鐘 demo script 可說明：problem / baseline / DRL design / result / limitation
 
-#### Scenario: Repository is reproducible
-- **WHEN** a third party follows the README
-- **THEN** they MUST be able to reproduce the baseline benchmark and DQN smoke test without additional undocumented steps
+### 成功 ≠ 以下條件
+
+- ❌ DRL 全面打敗所有 TCP baseline（不要求，不偽造）
+- ❌ 真實網路部署
+- ❌ IPFS 實作
+- ❌ QUIC 實作
+- ❌ production-grade TCP protocol
 
 ---
 
-### Requirement: Non-goals are enforced throughout the project
-The project MUST NOT include the following in any change implementation without explicit Spec Owner approval.
+## OpenSpec Governance Role
 
-**Forbidden without approval**:
-- IPFS implementation
-- Bitswap modification
-- DHT experiments
-- libp2p node experiments
-- Blockchain network protocol
-- QUIC congestion control
-- Linux kernel TCP stack modification
-- Real Internet deployment
-- Multi-agent RL
-- Large-scale topology (> sender + bottleneck + receiver)
-- Multi-path transmission
-- Distributed node systems
-- Pantheon as mandatory dependency
-- Claiming DRL universally outperforms all TCP baselines
+在本專案中，OpenSpec 扮演以下角色：
 
-#### Scenario: Forbidden item is proposed
-- **WHEN** any forbidden item appears in a task or is proposed for implementation
-- **THEN** the implementation agent MUST stop immediately and report to Spec Owner before any action
+1. **規格中樞**：每一個開發 change 的 proposal / design / tasks / specs 都由 OpenSpec 管理
+2. **Antigravity 的行動邊界**：Antigravity 只能在當前 OpenSpec change 的 tasks.md 所定義的範圍內執行任務
+3. **驗收機制**：每個 change 完成後，必須等待 spec owner 驗收（確認 `openspec status` 顯示 complete），才能啟動下一個 change
+4. **防偏軌機制**：OpenSpec specs 中的 Non-goals 和 Governance Rules 防止實作偏向 IPFS / QUIC / multi-agent 等非 MVP 範疇
+5. **未驗收前禁止推進**：若 spec owner 尚未確認，Antigravity 不得自行進入下一個 change
+
+---
+
+## Downstream Change Map
+
+| Change | 名稱 | 狀態 | 啟動條件 |
+|--------|------|------|---------|
+| 01 | project-charter（本 change） | 🟡 In Progress | — |
+| 02 | ns3-baseline-benchmark | ⏳ Pending | Change 01 spec owner 確認 |
+| 03 | ns3gym-environment | ⏳ Pending | Change 02 spec owner 確認 |
+| 04 | dqn-mvp-agent | ⏳ Pending | Change 03 spec owner 確認 |
+| 05 | reporting-figures-and-demo | ⏳ Pending | Change 04 spec owner 確認 |
