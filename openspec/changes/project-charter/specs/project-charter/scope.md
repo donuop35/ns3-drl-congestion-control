@@ -24,7 +24,8 @@
 
 ### RL Environment
 
-- Observation space（至少 4-dim：throughput、RTT、loss_rate、cwnd_signal）
+- Observation space（至少 4-dim：throughput、RTT、loss_rate、cwnd_or_rate_signal）
+  - **cwnd fallback rule**：優先使用 cwnd_signal；若 Change 03 smoke test 確認無法穩定取得 cwnd，必須改為 sending_rate_signal（或等效 congestion-control abstraction），並更新 Change 03 design.md，等待 Spec Owner 確認
 - Action space（Discrete(3)：decrease / keep / increase）
 - Reward function（throughput reward - RTT penalty - loss penalty）
 - Episode reset / step / done / info 介面
@@ -75,7 +76,10 @@
 - 真實 Internet 部署
 - Multi-agent RL（多個 agent 同時控制）
 - Multi-path transmission（多路徑傳輸）
-- Large-scale network topology（超過 sender + bottleneck + receiver 的拓樸）
+- Multi-bottleneck topology（多個瓶頃連結）
+- Multiple sender/receiver groups（多群組傳輸）
+- Large-scale topology（超出 MVP single bottleneck path 所需的複雜拓樸）
+  - **請注意**：合理的 ns-3 router-based bottleneck topology 是 **允許的**（中間 router 也可以是瓶頃）；禁止的是多瓶頃、multi-path、large fan-out topology
 - Pantheon 作為 MVP 必裝依賴
 - PPO 作為 MVP 演算法（只作為加分 / future extension）
 - Production-grade TCP protocol 實作

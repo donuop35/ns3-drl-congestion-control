@@ -37,8 +37,10 @@
 | Linux kernel TCP stack modification | 無法在模擬環境重現，風險極高 |
 | Real Internet deployment | 不可重現，無法控制實驗條件 |
 | Multi-agent RL | MVP 先解決 single agent 問題 |
-| Multi-path routing | 超出 single bottleneck 設定 |
-| Large-scale network topology | 超出 single bottleneck 設定 |
+| Multi-path routing / Multi-path transmission | 超出 single bottleneck path 設定 |
+| Multi-bottleneck topology | MVP 僅限 single bottleneck path |
+| Multiple sender/receiver groups | 超出 single flow 設定 |
+| Large-scale topology （超出 MVP 所需） | MVP 僅限 single bottleneck path；合理的 ns-3 router-based bottleneck topology 是允許的 |
 | Pantheon full integration as required dependency | 安裝複雜，非 MVP 必要 |
 | PPO as MVP requirement | PPO 作為 future extension，不替代 DQN MVP 優先序 |
 | Production-level congestion control protocol | 非學術研究目標 |
@@ -61,6 +63,8 @@
 | **Preferred Baseline** | BBR | Strongly preferred，非 blocking |
 | **Evaluation Metrics** | throughput, RTT, packet loss, utility score, reward curve, convergence behavior | 全部必做 |
 | **Spec Management** | OpenSpec v1.4.1 | 官方 `@fission-ai/openspec` |
+
+> ⚠️ **Node.js 版本風險（R-08 註記）**：目前環境為 Node.js v20.11.1，低於 OpenSpec 官方要求的 v20.19.0+。目前功能正常（僅有 WARN）。**Change 02 implementation 開始前建議升級至 20.19.0+，或由 Spec Owner 演出明確 waiver。** 若升級，使用 nvm（Windows： nvm-windows）：`nvm install 20.19.0 && nvm use 20.19.0`
 
 ---
 
@@ -113,8 +117,10 @@ change-01-project-charter  ←── 本 change（必須先完成）
 
 ### DR-01: Use single bottleneck link topology
 
-**Decision**: 第一版 topology 為 `sender → bottleneck link → receiver`，只有單一瓶頸。  
+**Decision**: MVP topology 為單一瓶頃路徑（single bottleneck path）。ns-3 可使用 router-based bottleneck 實現（如 PointToPoint + CSMA 路由器），這是合理的 ns-3 實作方式。  
 **Rationale**: 問題最簡單、最易重現、最易驗收。先解決 single bottleneck 才能推廣到複雜拓樸。  
+**Allowed**: 合理的 ns-3 router-based bottleneck topology（如有中間 router 就是瓶頃）。  
+**Not Allowed**: 多個瓶頃連結、多個 sender/receiver 群組、multi-path、large-scale topology。  
 **Alternatives**: Multi-hop topology → 排除（過於複雜，MVP 不需要）。
 
 ### DR-02: Use ns-3 as simulator
@@ -178,7 +184,7 @@ change-01-project-charter  ←── 本 change（必須先完成）
 
 | # | 問題 | 影響 | 狀態 |
 |---|------|------|------|
-| OQ-01 | Node.js v20.11.1 < 20.19.0（OpenSpec 要求）。功能目前正常（有 WARN），是否需要升級？ | 低（目前不影響功能） | ⏳ 待決策 |
-| OQ-02 | ns3-gym 與最新 ns-3 版本的相容性確認 | 高（Change 03 的基礎）| ⏳ 待 Change 02 |
-| OQ-03 | BBR 是否在目標 ns-3 版本支援（需要 >= 3.32）| 中（Change 02 決策）| ⏳ 待 Change 02 |
-| OQ-04 | cwnd 是否可在 ns3-gym 中直接讀寫？ | 高（影響 action design）| ⏳ 待 Change 03 |
+| OQ-01 | Node.js v20.11.1 < 20.19.0（OpenSpec 要求）。功能目前正常（有 WARN）。 | 低（目前不影響功能） | ✅ **Spec Owner 决策**：不阻塞 change-02 proposal，建議在 implementation 前升級 |
+| OQ-02 | ns3-gym 與最新 ns-3 版本的相容性確認 | 高（Change 03 的基礎）| ✅ 不阻塞 change-02，留到 change-03 處理 |
+| OQ-03 | BBR 是否在目標 ns-3 版本支援（需要 >= 3.32）| 中（Change 02 决策）| ✅ 不阻塞 change-02，BBR strongly preferred but non-blocking |
+| OQ-04 | cwnd 是否可在 ns3-gym 中直接讀寫？ | 高（影響 action design）| ✅ 不阻塞 change-02，留到 change-03 smoke test 驗證，已建立 cwnd fallback rule |

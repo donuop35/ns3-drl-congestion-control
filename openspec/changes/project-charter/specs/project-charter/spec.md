@@ -70,8 +70,8 @@
 |------|------|
 | **Environment** | ns-3 single bottleneck simulation |
 | **Agent** | DRL congestion-control agent |
-| **State space** | `[throughput_norm, rtt_norm, loss_rate, cwnd_signal_norm]`（4-dim，待 Change 03 確認） |
-| **Action space** | `Discrete(3)`：{0: decrease, 1: keep, 2: increase} |
+| **State space** | `[throughput_norm, rtt_norm, loss_rate, cwnd_or_rate_signal_norm]`（4-dim，待 Change 03 確認）<br>**cwnd fallback rule**：第 4 維優先使用 `cwnd_signal_norm`；若 Change 03 smoke test 驗證無法穩定取得或控制 cwnd，必須改為 `sending_rate_signal_norm`（或等效 congestion-control abstraction），並在 Change 03 design.md 中記錄 Decision Record，等待 Spec Owner 確認後才能繼續。 |
+| **Action space** | `Discrete(3)`：{0: decrease, 1: keep, 2: increase}（語意：降低 / 維持 / 提高送率或 cwnd-like 控制訊號） |
 | **Reward** | `r_t = α·throughput_t − β·RTT_t − γ·loss_t` |
 | **Episode length** | 60 秒（初版，待 smoke test 後調整） |
 | **Decision interval** | 500ms（初版，待 smoke test 後調整） |
@@ -82,13 +82,13 @@
 
 ### 成功 = 以下條件均達成
 
-- [x] 研究方向清楚，不偏離凍結題目
-- [x] Baseline（NewReno/CUBIC）可重現執行，產出 CSV log
-- [x] ns3-gym environment 可 reset / step，random agent 可跑完 1 個 episode
-- [x] DQN 訓練腳本可完成訓練，產出 reward curve
-- [x] 至少有一張 DRL vs baseline comparison 圖表
-- [x] GitHub repo 可被第三方依 README 重現主要流程
-- [x] 10 分鐘 demo script 可說明：problem / baseline / DRL design / result / limitation
+- [x] 研究方向清楚，不偏離凍結題目（Change 01 ✅ 已通過 Spec Owner 驗收）
+- [ ] Baseline（NewReno/CUBIC）可重現執行，產出 CSV log（Change 02 目標）
+- [ ] ns3-gym environment 可 reset / step，random agent 可跑完 1 個 episode（Change 03 目標）
+- [ ] DQN 訓練腳本可完成訓練，產出 reward curve（Change 04 目標）
+- [ ] 至少有一張 DRL vs baseline comparison 圖表（Change 04/05 目標）
+- [ ] GitHub repo 可被第三方依 README 重現主要流程（Change 05 目標）
+- [ ] 10 分鐘 demo script 可說明：problem / baseline / DRL design / result / limitation（Change 05 目標）
 
 ### 成功 ≠ 以下條件
 
@@ -116,8 +116,8 @@
 
 | Change | 名稱 | 狀態 | 啟動條件 |
 |--------|------|------|---------|
-| 01 | project-charter（本 change） | 🟡 In Progress | — |
-| 02 | ns3-baseline-benchmark | ⏳ Pending | Change 01 spec owner 確認 |
+| 01 | project-charter（本 change） | ✅ Approved（Spec Owner 已驗收） | — |
+| 02 | ns3-baseline-benchmark | 🟡 In Progress | ✅ Change 01 已通過 |
 | 03 | ns3gym-environment | ⏳ Pending | Change 02 spec owner 確認 |
 | 04 | dqn-mvp-agent | ⏳ Pending | Change 03 spec owner 確認 |
 | 05 | reporting-figures-and-demo | ⏳ Pending | Change 04 spec owner 確認 |

@@ -97,11 +97,21 @@
 
 ## 11. Spec Owner Review
 
-- [ ] 11.1 Submit change-01 artifacts for spec owner review
-- [ ] 11.2 Spec owner confirms: project title is correct and frozen
-- [ ] 11.3 Spec owner confirms: scope boundary is acceptable
-- [ ] 11.4 Spec owner confirms: MDP initial definition is acceptable
-- [ ] 11.5 Spec owner confirms: baseline selection is acceptable
-- [ ] 11.6 Spec owner confirms: risk register is adequate
-- [ ] 11.7 Spec owner signs off: "Direction confirmed, approved to start change-02"
-- [ ] 11.8 (After approval) Archive change-01 with `openspec archive change "project-charter"`
+- [x] 11.1 Submit change-01 artifacts for spec owner review
+- [x] 11.2 Spec owner confirms: project title is correct and frozen ✅
+- [x] 11.3 Spec owner confirms: scope boundary is acceptable ✅
+- [x] 11.4 Spec owner confirms: MDP initial definition is acceptable ✅ (cwnd as cwnd-like abstraction; fallback rule added)
+- [x] 11.5 Spec owner confirms: baseline selection is acceptable ✅ (NewReno+CUBIC required, BBR non-blocking)
+- [x] 11.6 Spec owner confirms: risk register is adequate ✅ (R-01 ~ R-12 accepted)
+- [x] 11.7 Spec owner signs off: "Direction confirmed, approved to start change-02" ✅ **2026-06-08**
+- [ ] 11.8 (After Change 05 complete) Archive change-01 with `openspec archive change "project-charter"`
+
+## 12. Post-Approval Revisions (Spec Owner Requested)
+
+- [x] 12.1 Add Node.js v20.11.1 < 20.19.0 risk note to README and design.md
+- [x] 12.2 Fix topology non-goal wording in design.md and scope.md (remove "> 2 nodes" phrasing; clarify ns-3 router-based bottleneck is allowed; prohibit multi-bottleneck/multi-path/multi-sender-receiver)
+- [x] 12.3 Add cwnd fallback rule in spec.md, scope.md (cwnd_signal_norm OR sending_rate_signal_norm; fallback procedure defined)
+- [x] 12.4 Remove YouTube embed from README (non-official video; replaced with TODO placeholder)
+- [x] 12.5 Confirm proposal/ directory exists (3 files: PDF, PPTX, video-link.md) — already existed from previous work ✅
+- [ ] 12.6 Spec owner final confirmation of revisions before entering Change 02 implementation
+

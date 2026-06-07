@@ -3,17 +3,9 @@
 > **以深度強化學習進行單一瓶頸鏈路壅塞控制與吞吐量最佳化**  
 > **Deep Reinforcement Learning for Congestion Control and Throughput Optimization over a Single Bottleneck Link**
 >
-> **專案狀態:** 🟡 *Change 01: project-charter — IN PROGRESS (OpenSpec Initiated)*
+> **專案狀態:** 🟡 *Change 01: project-charter — ✅ Approved（2026-06-08）、Change 02: ns3-baseline-benchmark — In Progress*
 
-<div align="center">
-  <a href="https://www.youtube.com/watch?v=3cu1WZz_k8M">
-    <img src="https://img.youtube.com/vi/3cu1WZz_k8M/maxresdefault.jpg" alt="Proposal Presentation Video" width="800" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-  </a>
-  <br>
-  <a href="https://www.youtube.com/watch?v=3cu1WZz_k8M">
-    <img src="https://img.shields.io/badge/YouTube-觀看簡報影片-red?style=for-the-badge&logo=youtube" alt="Watch on YouTube">
-  </a>
-</div>
+> 🎥 **Demo Video**: TODO — 正式 demo video 將在 Change 05 完成後補上。
 
 ---
 
@@ -68,6 +60,8 @@ openspec --version    # 1.4.1
 # Project initialization
 openspec update --force   # Updated Antigravity (v1.4.1)
 ```
+
+> ⚠️ **Node.js 版本警告**：目前環境為 Node.js **v20.11.1**，低於 OpenSpec 官方要求的 **v20.19.0+**。目前功能正常（僅有 `EBADENGINE` WARN）。Change 02 implementation 開始前，建議使用 `nvm install 20.19.0 && nvm use 20.19.0` 升級，或由 Spec Owner 演出明確 waiver。
 
 **Generated files:**
 ```
