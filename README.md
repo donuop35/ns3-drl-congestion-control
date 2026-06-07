@@ -1,8 +1,9 @@
-# Deep Reinforcement Learning for Congestion Control 🚀
+# DRL-Based Congestion Control over a Bottleneck Link 🚀
 
-> **以深度強化學習進行單一瓶頸鏈路壅塞控制與吞吐量最佳化**
+> **以深度強化學習進行單一瓶頸鏈路壅塞控制與吞吐量最佳化**  
+> **Deep Reinforcement Learning for Congestion Control and Throughput Optimization over a Single Bottleneck Link**
 >
-> **專案狀態:** 📝 *提案階段 (Proposal Stage) / OpenSpec 預覽* (尚未開始程式實作)
+> **專案狀態:** 🟡 *Change 01: project-charter — IN PROGRESS (OpenSpec Initiated)*
 
 <div align="center">
   <a href="https://www.youtube.com/watch?v=3cu1WZz_k8M">
@@ -16,56 +17,240 @@
 
 ---
 
-## 📌 專案概述 (Project Overview)
+## 📌 Research Motivation
 
-本專案旨在將網路傳輸中的**壅塞控制 (Congestion Control)** 形式化為一個**深度強化學習 (Deep Reinforcement Learning, DRL)** 的序列決策問題。
+Network congestion control is a fundamental problem in computer networking. Traditional TCP algorithms (NewReno, CUBIC, BBR) use hand-crafted rules to manage sending rates. Deep Reinforcement Learning (DRL) offers the potential to learn adaptive policies that optimize a richer utility function:
 
-有別於傳統依賴固定規則或啟發式邏輯的 TCP 演算法 (如 NewReno 或 CUBIC)，我們在此引入了 DRL 智慧體 (Agent)。該智慧體會根據即時觀測到的網路狀態，動態調整傳送端的傳輸策略。我們的核心目標並非盲目地最大化吞吐量 (這往往會導致嚴重的緩衝區滿載 Bufferbloat)，而是要在**吞吐量 (Throughput)**、**往返延遲 (RTT)** 與**封包遺失率 (Packet Loss)** 之間，找出最佳的動態**權衡 (Trade-off)**。
-
-**目前的目標範圍：** 於 `ns-3` 模擬環境中建立單一傳送端至接收端的瓶頸鏈路 (Single bottleneck link)。
-
-## 🧠 MDP 規格 (Markov Decision Process)
-
-為了讓壅塞控制具備可學習性，我們將環境建模為馬可夫決策過程 (MDP) $M = (S, A, P, R, \gamma)$：
-
-- 👁️ **狀態空間 (State Space, $S$)**: `[近期吞吐量, 往返延遲 (RTT), 丟包訊號, 壅塞指標, 上一步的動作]`
-- 🕹️ **動作空間 (Action Space, $A$)**: 離散控制選擇：`{減少 (Decrease), 維持 (Keep), 增加 (Increase)}` (用於調整傳送速率或壅塞視窗)。
-- 🏆 **獎勵函數 (Reward Function, $R$)**: $r_t = \alpha T_t - \beta RTT_t - \lambda L_t$ 
-  *(給予高吞吐量 $T_t$ 正向獎勵，同時針對高延遲 $RTT_t$ 與網路丟包 $L_t$ 施加嚴厲懲罰。)*
-- 🌍 **環境動態 (Environment, $P$)**: 實體的網路動態由 `ns-3` 網路模擬器處理，並透過 `ns3-gym` 介面與智慧體互動。
-
-## ⚙️ 規格驅動開發工作流 (Spec-Driven Workflow)
-
-我們拒絕從「概念」直接跳入「撰寫程式碼」。本專案嚴格遵循**規格驅動開發 (Spec-driven Development)** 的流程。
-
-```text
-PPT 概念提案 
-  ↓
-NotebookLM PDR (產品設計規格書) 與 資訊圖表
-  ↓
-OpenSpec 預覽 (將 PDR 拆解為具體的變更任務)
-  ↓
-task.md 任務草案 (可執行的開發步驟)
-  ↓
-🤖 未來交由 Antigravity 進行實作
+```
+maximize: throughput
+minimize: RTT (delay)
+minimize: packet loss rate
 ```
 
-**核心原則：** `PLAN (計畫) → APPLY (實作) → VERIFY (驗證)`
-在未來的每一個開發階段，都必須先定義範圍、實作變更，並在進入下一階段前，確實與基礎基準線 (TCP NewReno, CUBIC, BBR) 進行成效驗證。
+This project formalizes single-bottleneck-link congestion control as an MDP, trains a DQN agent using Stable-Baselines3 on a reproducible ns-3 / ns3-gym simulation environment, and compares the DRL agent against TCP baselines.
+
+**Thesis**: 本研究將單一瓶頸鏈路的壅塞控制建模為深度強化學習問題，透過 ns-3 / ns3-gym 建立可重現的網路模擬環境，讓 agent 學習在 throughput、RTT 與 packet loss 之間取得更好的控制折衷，並與傳統 TCP baseline 進行比較。
 
 ---
 
-## 📂 Repository 目錄結構與交付物
+## 🚫 Scope and Non-Goals
 
-本 Repository 目前存放的是**提案階段 (Proposal Stage)** 的相關文件。
+### In Scope (MVP)
+- Single bottleneck link: `sender → bottleneck → receiver`
+- TCP baselines: NewReno, CUBIC (+ BBR if supported)
+- DRL agent: Stable-Baselines3 DQN, discrete action space (3 actions)
+- Metrics: throughput, RTT, packet loss, utility score, reward curve
+- Scenarios: at least 2 (Scenario A: low-latency, Scenario B: high-latency)
 
-- **`proposal/`**: 概念提案的起源。包含 [Proposal 簡報 PDF📄](proposal/final-project-proposal-slides.pdf) 與 PPTX 原始檔。
-- **`pdr/`**: 形式化的規格書。包含 [PDR 整合報告 📘](pdr/PDR_integrated.pdf) (詳細說明實驗矩陣與風險評估)。
-- **`openspec-preview/`**: AI 執行的路線圖草案。包含 [OpenSpec Roadmap](openspec-preview/openspec-roadmap.md) 與工作清單草案。
-- **`docs/`**: 客觀證據對照表與相關研究群組分析。
-- **`assets/`**: 系統資訊圖表與視覺資源。
+### Out of Scope (Non-Goals)
+- ❌ IPFS implementation (motivation/future work only)
+- ❌ QUIC congestion control
+- ❌ Linux kernel TCP stack modification
+- ❌ Multi-agent RL
+- ❌ Large-scale network topology (> sender + bottleneck + receiver)
+- ❌ Multi-path transmission
+- ❌ Real Internet deployment
+- ❌ Production-grade TCP protocol
+- ❌ Claiming DRL universally outperforms all TCP baselines
 
-> [!WARNING]
-> **範圍邊界聲明 (Scope Note)：**
-> 本 Repository 目前僅包含提案階段的素材。正式的 OpenSpec 初始化、`ns-3` 環境建置與 DQN 模型實作將於 **Phase 2** 展開。
-> *IPFS、QUIC、多智慧體強化學習 (Multi-agent RL) 以及真實網際網路部署，已明確排除於本次的 MVP 實作範圍之外。*
+---
+
+## 🔧 Official OpenSpec Setup Proof
+
+This project uses **OpenSpec v1.4.1** for Spec-Driven Development.
+
+```bash
+# Installation verification
+node -v               # v20.11.1
+npm list -g @fission-ai/openspec --depth=0  # @fission-ai/openspec@1.4.1
+openspec --version    # 1.4.1
+
+# Project initialization
+openspec update --force   # Updated Antigravity (v1.4.1)
+```
+
+**Generated files:**
+```
+.agent/skills/openspec-apply-change/SKILL.md
+.agent/skills/openspec-archive-change/SKILL.md
+.agent/skills/openspec-explore/SKILL.md
+.agent/skills/openspec-propose/SKILL.md
+.agent/skills/openspec-sync-specs/SKILL.md
+.agent/workflows/opsx-apply.md
+.agent/workflows/opsx-archive.md
+.agent/workflows/opsx-explore.md
+.agent/workflows/opsx-propose.md
+.agent/workflows/opsx-sync.md
+```
+
+**Change 01 status** (verified by `openspec status --change "project-charter"`):
+```
+Progress: 4/4 artifacts complete
+[x] proposal  [x] design  [x] specs  [x] tasks
+```
+
+---
+
+## 🛠️ Toolchain
+
+| Component | Tool | Version |
+|-----------|------|---------|
+| Network Simulator | ns-3 | >= 3.32 |
+| RL Interface | ns3-gym | Latest compatible |
+| RL Framework | Stable-Baselines3 | >= 1.8.0 |
+| MVP Algorithm | DQN | SB3 DQN |
+| Analysis | Python 3.9+ | numpy, pandas, matplotlib |
+| Spec Management | OpenSpec | v1.4.1 |
+
+---
+
+## 📦 Installation
+
+> ⚠️ **ns-3 and ns3-gym require Linux.** Use WSL2 (Ubuntu 20.04+) or a Linux VM.
+
+```bash
+# 1. Clone repository
+git clone <your-repo-url>
+cd ns3-drl-congestion-control
+
+# 2. Install ns-3 (see docs/ for detailed instructions - TODO: Change 02)
+# 3. Install ns3-gym (see docs/ - TODO: Change 03)
+# 4. Install Python dependencies (TODO: Change 04)
+pip install stable-baselines3 gymnasium numpy pandas matplotlib
+```
+
+> Full installation instructions will be added in Changes 02 and 03.
+
+---
+
+## 🚀 How to Run Baseline
+
+> **Status**: ⏳ TODO — will be implemented in Change 02 (ns3-baseline-benchmark)
+
+```bash
+# Run TCP NewReno baseline (Scenario A: low-latency bottleneck)
+# python scripts/run_baseline.py --config experiments/configs/scenario_a.yaml --algo NewReno
+
+# Run TCP CUBIC baseline
+# python scripts/run_baseline.py --config experiments/configs/scenario_a.yaml --algo CUBIC
+```
+
+---
+
+## 🧪 How to Run ns3-gym Smoke Test
+
+> **Status**: ⏳ TODO — will be implemented in Change 03 (ns3-gym-environment)
+
+```bash
+# Random agent smoke test
+# python src/gym_env/smoke_test.py --episodes 1 --config experiments/configs/scenario_a.yaml
+```
+
+---
+
+## 🤖 How to Train DQN
+
+> **Status**: ⏳ TODO — will be implemented in Change 04 (dqn-mvp-agent)
+
+```bash
+# Train DQN agent
+# python src/agents/train_dqn.py --config experiments/configs/scenario_a.yaml --timesteps 100000
+
+# Evaluate trained model
+# python src/agents/eval_dqn.py --model experiments/results/dqn_model.zip --config experiments/configs/scenario_a.yaml
+```
+
+---
+
+## 📊 How to Reproduce Figures
+
+> **Status**: ⏳ TODO — will be implemented in Change 05 (reporting-figures-and-demo)
+
+```bash
+# Generate all comparison figures
+# python src/analysis/plot_comparison.py --results experiments/results/
+```
+
+---
+
+## 📈 Results Summary
+
+> **Status**: ⏳ PENDING — experiments not yet run
+
+| Metric | NewReno | CUBIC | BBR | DQN (ours) |
+|--------|---------|-------|-----|------------|
+| Avg Throughput (Mbps) | TBD | TBD | TBD | TBD |
+| Avg RTT (ms) | TBD | TBD | TBD | TBD |
+| Packet Loss (%) | TBD | TBD | TBD | TBD |
+| Utility Score | TBD | TBD | TBD | TBD |
+
+---
+
+## 🗺️ Change Sequence Roadmap
+
+| # | Change Name | Status | Description |
+|---|-------------|--------|-------------|
+| 01 | `project-charter` | 🟡 IN PROGRESS | Research direction freezing, MDP definition, charter document |
+| 02 | `ns3-baseline-benchmark` | ⏳ PENDING | ns-3 single bottleneck TCP baselines (NewReno, CUBIC, BBR) |
+| 03 | `ns3-gym-environment` | ⏳ PENDING | ns3-gym RL environment + random agent smoke test |
+| 04 | `dqn-mvp-agent` | ⏳ PENDING | Stable-Baselines3 DQN training + evaluation |
+| 05 | `reporting-figures-and-demo` | ⏳ PENDING | Final deliverables, figures, PPT assets, demo script |
+
+---
+
+## ⚠️ Known Limitations
+
+- ns3-gym compatibility with the latest ns-3 version TBD (Change 02)
+- Direct cwnd control feasibility TBD (Change 03)
+- BBR baseline support depends on ns-3 version (Change 02)
+- DQN may not outperform TCP baselines — honest trade-off analysis will be provided
+
+---
+
+## 🔮 Future Work
+
+- PPO with continuous action space for finer-grained rate control
+- Multi-flow scenarios (Jain's fairness index analysis)
+- Generalization across different network scenarios
+- IPFS / decentralized network motivation (not in this semester's scope)
+- QUIC congestion control adaptation (not in this semester's scope)
+
+---
+
+## 📂 Repository Structure
+
+```
+ns3-drl-congestion-control/
+├── README.md                    # This file
+├── openspec/                    # Official OpenSpec (v1.4.1)
+│   ├── changes/
+│   │   ├── project-charter/     # Change 01 (IN PROGRESS)
+│   │   │   ├── proposal.md
+│   │   │   ├── design.md
+│   │   │   ├── tasks.md
+│   │   │   └── specs/project-charter/spec.md
+│   │   └── archive/
+│   └── specs/
+├── .agent/                      # OpenSpec Antigravity integration
+│   ├── skills/                  # openspec-*/SKILL.md
+│   └── workflows/               # opsx-*.md
+├── docs/                        # Background docs
+│   ├── background_congestion_control.md
+│   ├── methodology_mdp.md
+│   ├── related_work.md
+│   └── risk_register.md
+├── src/
+│   ├── ns3/                     # ns-3 simulation scripts (Change 02)
+│   ├── gym_env/                 # ns3-gym environment (Change 03)
+│   ├── agents/                  # DQN agent (Change 04)
+│   └── analysis/                # Analysis and plotting (Change 05)
+├── experiments/
+│   ├── configs/                 # Scenario configurations (with random seeds)
+│   ├── logs/                    # Experiment logs
+│   └── results/                 # CSV results and trained models
+├── figures/                     # Generated figures
+├── slides/                      # PPT assets
+├── scripts/                     # Utility scripts
+├── proposal/                    # Original proposal documents
+└── pdr/                         # PDR documents
+```
