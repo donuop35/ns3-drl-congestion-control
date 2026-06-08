@@ -12,7 +12,7 @@
 - [x] 0.8 Validate specs/scenario-matrix.md against MVP-required / optional scenario boundaries
 - [x] 0.9 Validate specs/benchmark-risk-register.md against required risk and fallback coverage
 - [x] 0.10 Run `openspec status --change "ns3-baseline-benchmark" --json` 後回報，確認仍為 isComplete: true ✅ **confirmed** — `isComplete: true`，4/4 artifacts `status: done`，6 spec files recognized；`openspec validate --strict --json` → `valid: true, issues: [], passed: 1, failed: 0`
-- [ ] 0.11 Spec Owner 再次驗收通過，才可執行 /opsx:apply
+- [ ] 0.11 /opsx:apply for Change 02 — **Spec Owner approval for Change 02 specification is granted (commit ae2e535, 2026-06-08), but /opsx:apply is deferred until Phase 3: Baseline First. Do not apply until Phase 3 explicitly approved.**
 
 ## 1. Pre-Implementation Environment Check
 
