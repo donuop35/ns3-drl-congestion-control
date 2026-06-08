@@ -417,12 +417,12 @@ class Ns3CongestionEnv(gym.Env):
             "raw_loss_rate":         extra.get("raw_loss_rate", loss),
             "utility_score":         util,
             "delay_estimate_method": "delaySum_per_packet",
-            # RL metadata
+            # RL metadata (use ep_num instead of episode to avoid SB3 Monitor collision)
             "scenario_id":           self.scenario,
             "step_index":            self._step_count,
             "action_applied":        action,
             "action_meaning":        {0: "decrease", 1: "keep", 2: "increase"}[action],
-            "episode":               self._ep_count,
+            "ep_num":                self._ep_count,  # renamed from 'episode'
         }
         info.update(extra)
         self._last_info = info

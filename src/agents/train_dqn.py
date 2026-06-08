@@ -164,7 +164,7 @@ def train_dqn(
             total_timesteps=total_timesteps,
             callback=checkpoint_cb,
             reset_num_timesteps=True,
-            progress_bar=True,
+            progress_bar=False,  # avoid tqdm/rich dependency
         )
     except KeyboardInterrupt:
         print("\n[WARN] Training interrupted by user. Saving partial model...")
