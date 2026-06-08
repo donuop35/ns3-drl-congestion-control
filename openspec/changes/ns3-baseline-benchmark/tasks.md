@@ -1,12 +1,28 @@
+## 0. Pre-Apply Cleanup (Spec Owner Required, 2026-06-08)
+
+> ❗ 以下任務必須在 /opsx:apply 前完成。未完成前不得進入 implementation。
+
+- [x] 0.1 Node.js upgrade to v20.19.0+ — Spec Owner 授權直接升級（本次不授予 waiver）
+- [x] 0.2 Confirm `node -v` 輸出 >= 20.19.0 後回報
+- [x] 0.3 Confirm `openspec --version` 升級後仍可正常執行
+- [x] 0.4 Confirm 升級後無 EBADENGINE warning
+- [x] 0.5 Validate specs/baseline-methods.md against Change 02 acceptance criteria
+- [x] 0.6 Validate specs/topology.md against router-based single bottleneck constraints
+- [x] 0.7 Validate specs/metrics-logging.md against metric-equivalent reproducibility and provisional utility_score rules
+- [x] 0.8 Validate specs/scenario-matrix.md against MVP-required / optional scenario boundaries
+- [x] 0.9 Validate specs/benchmark-risk-register.md against required risk and fallback coverage
+- [ ] 0.10 Run `openspec status --change "ns3-baseline-benchmark" --json` 後回報，確認仍為 isComplete: true
+- [ ] 0.11 Spec Owner 再次驗收通過，才可執行 /opsx:apply
+
 ## 1. Pre-Implementation Environment Check
 
-- [ ] 1.1 Confirm ns-3 is installed in Linux/WSL2 environment: run `ns3 --version` or `./waf --version`
-- [ ] 1.2 Confirm ns-3 version is >= 3.32 (required for BBR module)
-- [ ] 1.3 Confirm BBR module availability: check if `TcpBbr` class exists in ns-3 TCP module
+- [ ] 1.1 Confirm **ns-3.40** is installed in Linux/WSL2 environment: run `./ns3 --version` and verify output is `3.40`
+- [ ] 1.2 Confirm ns-3.40 specifically (NOT 3.35, 3.36, or latest stable) — Spec Owner frozen version
+- [ ] 1.3 Confirm BBR module availability in ns-3.40: check if `TcpBbr` class exists in `src/internet/model/tcp-bbr.h`
 - [ ] 1.4 Confirm Python 3.9+ is available: `python3 --version`
 - [ ] 1.5 Install Python dependencies: `pip install numpy pandas matplotlib pyyaml`
-- [ ] 1.6 Confirm node -v and openspec --version are available (Node.js version note: v20.11.1, < 20.19.0 — consider upgrading before implementation)
-- [ ] 1.7 Run ns-3 tutorial example to confirm basic ns-3 functionality: `./waf --run first` or equivalent
+- [x] 1.6 Node.js upgraded to v20.19.0+ (pre-apply cleanup task 0.1); `openspec --version` confirmed working
+- [ ] 1.7 Run ns-3.40 tutorial example to confirm basic ns-3 functionality: `./ns3 run first` or `./waf --run first`
 
 ## 2. Experiment Configuration Files
 
@@ -22,7 +38,7 @@
 - [ ] 3.3 Add FlowMonitor instrumentation to collect per-flow throughput, RTT, packet loss
 - [ ] 3.4 Configure ns-3 random seed: `ns3::RngSeedManager::SetSeed(seed)` and `SetRun(run)`
 - [ ] 3.5 Test topology with small simulation: 5 Mbps, 5s, verify FlowMonitor output is non-empty
-- [ ] 3.6 Verify reproducibility: run same config twice and confirm identical FlowMonitor output
+- [ ] 3.6 Verify reproducibility: run same config twice with same seed and confirm metric-equivalent outputs (throughput / RTT / loss within documented tolerance; byte-for-byte FlowMonitor XML identity is NOT required)
 
 ## 4. TCP Baseline Scripts
 
@@ -38,7 +54,7 @@
 ## 5. Log Parsing and CSV Generation
 
 - [ ] 5.1 Create `src/analysis/parse_baseline.py`: parse FlowMonitor XML output and extract throughput_mbps, rtt_ms, loss_rate
-- [ ] 5.2 Implement utility score calculation: `utility = throughput_norm - 0.1 * rtt_norm - 10.0 * loss_rate`
+- [ ] 5.2 Implement utility score calculation: `utility = throughput_norm - 0.1 * rtt_norm - 10.0 * loss_rate` (**provisional formula** — weights are not final; may be revised in Change 04/05 with Spec Owner approval)
 - [ ] 5.3 Output CSV to `experiments/results/<scenario>_<algo>_seed<seed>.csv` with all required columns
 - [ ] 5.4 Parse and validate NewReno Scenario A log: confirm CSV has correct columns and non-trivial values
 - [ ] 5.5 Parse and validate NewReno Scenario B log
