@@ -5,3 +5,7 @@ S1,ns3::TcpCubic,run_001,42,9.894414,117.668105,0.000504,0.884401,60.000000,YES,
 S2,ns3::TcpCubic,run_001,42,9.587526,156.271566,0.008848,0.818185,60.000000,YES,delay_estimate_method:delaySum_per_packet
 S1,ns3::TcpBbr,run_001,42,9.727414,25.885311,0.000000,0.946856,60.000000,YES,delay_estimate_method:delaySum_per_packet
 S2,ns3::TcpBbr,run_001,42,0.385408,148.652905,0.015816,-0.169173,60.000000,YES,delay_estimate_method:delaySum_per_packet
+S3,ns3::TcpLinuxReno,run_001,42,9.809688,61.477284,0.000672,0.912774,60.000000,YES,delay_estimate_method:delaySum_per_packet
+S3,ns3::TcpCubic,run_001,42,9.894414,67.901421,0.000565,0.915889,60.000000,YES,delay_estimate_method:delaySum_per_packet
+S4,ns3::TcpLinuxReno,run_001,42,5.136643,117.950862,0.001978,0.393881,60.000000,YES,delay_estimate_method:delaySum_per_packet
+S4,ns3::TcpCubic,run_001,42,5.484814,123.922922,0.001634,0.432140,60.000000,YES,delay_estimate_method:delaySum_per_packet

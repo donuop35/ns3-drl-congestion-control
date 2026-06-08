@@ -44,16 +44,26 @@ SUMMARY_CSV   = SUMMARIES_DIR / "baseline_summary.csv"
 
 # ── Color scheme for algorithms ─────────────────────────────────────────────
 ALGO_COLORS = {
-    "TcpNewReno":           "#2196F3",  # Blue
-    "TcpNewReno_fallback":  "#2196F3",
-    "TcpCubic":             "#FF9800",  # Orange
-    "TcpBbr":               "#4CAF50",  # Green
+    # ns-3.40 TypeId format (with prefix)
+    "ns3::TcpLinuxReno":        "#2196F3",  # Blue
+    "ns3::TcpCubic":            "#FF9800",  # Orange
+    "ns3::TcpBbr":              "#4CAF50",  # Green
+    # Short names (fallback)
+    "TcpLinuxReno":             "#2196F3",
+    "TcpLinuxReno_fallback":    "#2196F3",
+    "TcpNewReno":               "#2196F3",
+    "TcpCubic":                 "#FF9800",
+    "TcpBbr":                   "#4CAF50",
 }
 ALGO_LABELS = {
-    "TcpNewReno":           "NewReno",
-    "TcpNewReno_fallback":  "NewReno (fallback)",
-    "TcpCubic":             "CUBIC",
-    "TcpBbr":               "BBR",
+    "ns3::TcpLinuxReno":        "NewReno (TcpLinuxReno)",
+    "ns3::TcpCubic":            "CUBIC",
+    "ns3::TcpBbr":              "BBR",
+    "TcpLinuxReno":             "NewReno",
+    "TcpLinuxReno_fallback":    "NewReno (fallback)",
+    "TcpNewReno":               "NewReno",
+    "TcpCubic":                 "CUBIC",
+    "TcpBbr":                   "BBR",
 }
 SCENARIO_LABELS = {
     "S1": "S1 (Low Delay, 10ms)",

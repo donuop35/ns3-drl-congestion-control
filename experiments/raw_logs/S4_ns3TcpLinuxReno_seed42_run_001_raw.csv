@@ -1,0 +1,2 @@
+scenario_id,method,run_id,seed,rx_bytes,tx_packets,rx_packets,lost_packets,throughput_mbps,avg_delay_ms,loss_rate,utility_score,sim_duration,flow_count,ns3_version,tcp_variant_found,notes
+S4,ns3::TcpLinuxReno,run_001,42,38524824,25779,25687,51,5.136643,117.950862,0.001978,0.393881,60.000000,1,3.40,YES,delay_estimate_method:delaySum_per_packet

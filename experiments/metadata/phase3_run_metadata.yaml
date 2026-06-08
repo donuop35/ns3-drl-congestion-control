@@ -1,0 +1,24 @@
+# Phase 3 Baseline Run Metadata
+# Generated: 2026-06-08T14:37:55Z
+phase: 3
+steps_completed:
+  - "C: NewReno baseline (S1+S2)"
+  - "D: CUBIC baseline (S1+S2)"
+  - "E: BBR baseline (FOUND)"
+  - "F: S3/S4 optional (attempted)"
+ns3_version: "3.40"
+seed: 42
+sim_duration_s: 60.0
+tcp_variants_attempted:
+  - TcpNewReno
+  - TcpCubic
+  - TcpBbr (FOUND)
+scenarios_attempted:
+  - S1 (MVP-required)
+  - S2 (MVP-required)
+  - S3 (should-have, non-blocking)
+  - S4 (optional, non-blocking)
+output:
+  raw_logs: "/mnt/c/Users/donuop/Documents/grassland/ns3-drl-congestion-control/experiments/raw_logs"
+  summaries: "/mnt/c/Users/donuop/Documents/grassland/ns3-drl-congestion-control/experiments/summaries"
+generated_by: "scripts/phase3/baseline_runner.sh"
