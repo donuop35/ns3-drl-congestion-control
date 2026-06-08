@@ -186,6 +186,6 @@
 
 - [ ] 13.1 Run `openspec status --change "dqn-mvp-agent" --json` and confirm `isComplete: true`
 - [ ] 13.2 Run `openspec validate "dqn-mvp-agent" --type change --strict --json` and confirm `valid: true, issues: []`
-- [ ] 13.3 Submit Change 04 to Spec Owner for review
-- [ ] 13.4 Spec Owner approval granted → approved to proceed to Phase 3: Baseline First
-- [ ] 13.5 /opsx:apply for Change 04 — **DO NOT apply until Phase 3 is explicitly approved. /opsx:apply for Change 02, Change 03, Change 04 are all deferred until Phase 3.**
+- [x] 13.3 Submit Change 04 to Spec Owner for review ✅ **submitted** — commit 2411e57
+- [x] 13.4 Spec Owner approval granted → approved to proceed to Phase 3: Baseline First ✅ **approved** (Spec Owner, 2026-06-08) — all artifacts accepted; Phase 3 authorized
+- [ ] 13.5 /opsx:apply for Change 04 — **Spec Owner approval for Change 04 specification is granted, but /opsx:apply is deferred. ALL changes (/opsx:apply for Change 02, 03, 04) are deferred until Spec Owner explicitly approves per-change. Phase 3 baseline execution is now underway.**
