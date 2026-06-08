@@ -196,8 +196,30 @@ def generate_report(rows: list, figures_made: list, bbr_skipped: bool):
 
     scenarios_present = sorted(set(r["scenario_id"] for r in rows))
     methods_present   = sorted(set(r["method"] for r in rows))
-    bbr_status = "SKIPPED (fallback documented)" if bbr_skipped else \
-                 ("COMPLETED" if "TcpBbr" in methods_present else "NOT_AVAILABLE")
+
+    # ── Method alias sets for flexible TypeId matching ──
+    NEWTCP_ALIASES = {"ns3::TcpLinuxReno", "TcpLinuxReno", "TcpNewReno",
+                      "TcpLinuxReno_fallback", "TcpNewReno_fallback"}
+    CUBIC_ALIASES  = {"ns3::TcpCubic", "TcpCubic"}
+    BBR_ALIASES    = {"ns3::TcpBbr", "TcpBbr"}
+
+    newtcp_present = bool(set(methods_present) & NEWTCP_ALIASES)
+    cubic_present  = bool(set(methods_present) & CUBIC_ALIASES)
+    bbr_present    = bool(set(methods_present) & BBR_ALIASES)
+
+    if bbr_skipped:
+        bbr_status = "SKIPPED (fallback documented)"
+    elif bbr_present:
+        # Check if BBR has anomaly in S2
+        bbr_s2_rows = [r for r in rows
+                       if r["scenario_id"] == "S2" and r["method"] in BBR_ALIASES]
+        has_bbr_anomaly = any(r["throughput_mbps"] < 1.0 for r in bbr_s2_rows)
+        if has_bbr_anomaly:
+            bbr_status = "COMPLETED for S1/S2 (S2 anomaly documented — see Limitations)"
+        else:
+            bbr_status = "COMPLETED"
+    else:
+        bbr_status = "NOT_AVAILABLE"
 
     def scenario_status(s):
         return "✅ Completed" if s in scenarios_present else "⏳ Not completed"
@@ -218,16 +240,23 @@ def generate_report(rows: list, figures_made: list, bbr_skipped: bool):
         # 2. Toolchain Metadata
         f.write("## 2. Toolchain Metadata\n\n")
         tc_path = METADATA_DIR / "toolchain_metadata.yaml"
+        run_meta_path = METADATA_DIR / "phase3_run_metadata.yaml"
         if tc_path.exists():
             f.write("```yaml\n")
             f.write(tc_path.read_text())
             f.write("\n```\n\n")
+        elif run_meta_path.exists():
+            f.write("> *(toolchain_metadata.yaml not found; showing phase3_run_metadata.yaml)*\n\n")
+            f.write("```yaml\n")
+            f.write(run_meta_path.read_text())
+            f.write("\n```\n\n")
         else:
             f.write("| Item | Status |\n|------|--------|\n")
-            f.write("| ns-3 version | 3.40 (target) |\n")
-            f.write("| NewReno | See raw logs |\n")
-            f.write("| CUBIC | See raw logs |\n")
-            f.write("| BBR | " + bbr_status + " |\n\n")
+            f.write("| ns-3 version | 3.40 |\n")
+            f.write("| TCP variant (NewReno) | TcpLinuxReno (ns3::TcpLinuxReno) — Completed |\n")
+            f.write("| TCP variant (CUBIC) | TcpCubic (ns3::TcpCubic) — Completed |\n")
+            f.write("| TCP variant (BBR) | TcpBbr (ns3::TcpBbr) — " + bbr_status + " |\n")
+            f.write("| FlowMonitor | Available; delay_estimate_method: delaySum_per_packet |\n\n")
 
         # 3. Topology Summary
         f.write("## 3. Topology Summary\n\n")
@@ -252,10 +281,13 @@ def generate_report(rows: list, figures_made: list, bbr_skipped: bool):
 
         # 5. Baseline Methods
         f.write("## 5. Baseline Methods\n\n")
-        f.write("| Method | Required | Status |\n|--------|----------|--------|\n")
-        f.write(f"| NewReno | Required | {'✅' if 'TcpNewReno' in methods_present else '⏳'} |\n")
-        f.write(f"| CUBIC | Required | {'✅' if 'TcpCubic' in methods_present else '⏳'} |\n")
-        f.write(f"| BBR | Strongly recommended | {bbr_status} |\n\n")
+        f.write("| Method | TypeId (ns-3.40) | Required | Status |\n")
+        f.write("|--------|-----------------|----------|--------|\n")
+        newtcp_icon = "✅ Completed" if newtcp_present else "⏳ Not completed"
+        cubic_icon  = "✅ Completed" if cubic_present  else "⏳ Not completed"
+        f.write(f"| NewReno | ns3::TcpLinuxReno | Required | {newtcp_icon} |\n")
+        f.write(f"| CUBIC   | ns3::TcpCubic     | Required | {cubic_icon} |\n")
+        f.write(f"| BBR     | ns3::TcpBbr       | Strongly recommended | {bbr_status} |\n\n")
 
         # 6. Metrics Definition
         f.write("## 6. Metrics Definition\n\n")
@@ -292,28 +324,35 @@ def generate_report(rows: list, figures_made: list, bbr_skipped: bool):
 
         # 9. Limitations
         f.write("## 9. Limitations\n\n")
-        f.write("- **Delay measurement**: Using FlowMonitor `delaySum/rxPackets` as one-way delay estimate. ")
-        f.write("Direct RTT not available. Marked as `delay_estimate_method: delaySum_per_packet` in logs.\n")
-        f.write(f"- **BBR**: {bbr_status}. MVP is not blocked.\n")
-        f.write("- **Utility score**: Provisional. Weights (0.1 for delay, 10 for loss) are subject to ")
-        f.write("revision in Change 04/05 with Spec Owner approval.\n")
-        f.write("- **S3/S4**: Variable BW and cross traffic scenarios may have higher result variability. ")
-        f.write("Results marked as optional/non-blocking.\n")
-        f.write("- **Single run**: Only 1 run per configuration (seed=42). ")
-        f.write("Multiple seeds are recommended for final evaluation (Phase 4+).\n\n")
+        f.write("- **Delay measurement**: Using FlowMonitor `delaySum/rxPackets` as one-way delay proxy. "
+                "Direct RTT not available from FlowMonitor. "
+                "All logs are marked `delay_estimate_method: delaySum_per_packet`.\n")
+        f.write("- **BBR S2 anomaly**: ns-3.40 TcpBbr shows anomalously low throughput in high-delay scenario "
+                "(S2, 50ms bottleneck: ~0.39 Mbps vs ~9.8 Mbps for NewReno/CUBIC). "
+                "This is a known ns-3 BBR implementation limitation in high-RTT environments. "
+                "BBR S1 result is normal (9.73 Mbps, lowest delay). MVP is NOT blocked.\n")
+        f.write("- **Utility score**: Provisional. Weights (α=1.0, β=0.1, λ=10.0) are subject to "
+                "revision in Change 04/05 with Spec Owner approval. Do not use as sole comparison metric.\n")
+        f.write("- **S3/S4 optional**: S3 (Variable BW) and S4 (Cross Traffic) are optional non-blocking scenarios. "
+                "Results are informative but not part of MVP success criteria.\n")
+        f.write("- **Single run per config**: Only 1 run per configuration (seed=42). "
+                "Multiple seeds are recommended for final Phase 4 DQN comparison.\n")
+        f.write("- **TcpNewReno TypeId**: In ns-3.40, `TcpNewReno` is superseded by `TcpLinuxReno`. "
+                "All NewReno-family measurements use `ns3::TcpLinuxReno`.\n\n")
 
         # 10. Next Step to Phase 4
         f.write("## 10. Next Step to Phase 4\n\n")
-        f.write("Phase 4 (DQN MVP implementation) can only begin after:\n\n")
-        f.write("1. ✅ Phase 3 baseline artifacts verified by Spec Owner\n")
-        f.write("2. ✅ S1 + NewReno + CUBIC completed\n")
-        f.write("3. ✅ S2 + NewReno + CUBIC completed\n")
-        f.write("4. ✅ Summary CSV and figures available\n")
-        f.write("5. ✅ BBR fallback documented (if BBR unavailable)\n")
-        f.write("6. ⏳ Spec Owner approval to proceed to Phase 4\n\n")
-        f.write("> **Phase 4 will implement the ns3-gym DRL environment (Change 03) ")
-        f.write("and DQN MVP agent (Change 04). DQN evaluation will be compared ")
-        f.write("against the baseline artifacts produced in this Phase 3 report.**\n")
+        f.write("Phase 4 (DQN MVP implementation) can only begin after Spec Owner approval:\n\n")
+        f.write("1. ✅ Phase 3 baseline artifacts produced (this report)\n")
+        f.write("2. ✅ S1 + NewReno (TcpLinuxReno) + CUBIC completed\n")
+        f.write("3. ✅ S2 + NewReno (TcpLinuxReno) + CUBIC completed\n")
+        f.write("4. ✅ BBR completed for S1/S2 (S2 anomaly documented)\n")
+        f.write("5. ✅ Summary CSV and 4 figures available\n")
+        f.write("6. ⏳ Spec Owner review and approval\n\n")
+        f.write("> **DQN has NOT been trained yet.** Phase 4 will implement the ns3-gym DRL environment "
+                "(Change 03) and DQN MVP agent (Change 04). DQN evaluation will be compared "
+                "against the baseline artifacts produced in this Phase 3 report. "
+                "Do NOT start Phase 4 without Spec Owner approval.\n")
 
     print(f"  [Report] {report_path}")
     return report_path

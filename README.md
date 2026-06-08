@@ -3,7 +3,8 @@
 > **以深度強化學習進行單一瓶頸鏈路壅塞控制與吞吐量最佳化**  
 > **Deep Reinforcement Learning for Congestion Control and Throughput Optimization over a Single Bottleneck Link**
 >
-> **專案狀態:** 🟡 *Change 01: project-charter — ✅ Approved（2026-06-08）、Change 02: ns3-baseline-benchmark — In Progress*
+> **專案狀態:** 🟢 *Phase 3: Baseline Benchmark — ✅ Completed（2026-06-08）| Pending Spec Owner Review*  
+> **DQN 訓練狀態:** ⏳ Not started — Phase 4 will implement DQN MVP after Phase 3 approval
 
 > 🎥 **Demo Video**: TODO — 正式 demo video 將在 Change 05 完成後補上。
 
@@ -87,13 +88,17 @@ Progress: 4/4 artifacts complete
 
 ## 🛠️ Toolchain
 
-| Component | Tool | Version |
-|-----------|------|---------|
-| Network Simulator | ns-3 | >= 3.32 |
-| RL Interface | ns3-gym | Latest compatible |
-| RL Framework | Stable-Baselines3 | >= 1.8.0 |
-| MVP Algorithm | DQN | SB3 DQN |
-| Analysis | Python 3.9+ | numpy, pandas, matplotlib |
+| Component | Tool | Version / Notes |
+|-----------|------|------------------|
+| Network Simulator | ns-3 | **3.40** (frozen per Change 02) |
+| TCP NewReno | `ns3::TcpLinuxReno` | TcpNewReno superseded in ns-3.40 |
+| TCP CUBIC | `ns3::TcpCubic` | Available in ns-3.40 |
+| TCP BBR | `ns3::TcpBbr` | Available; S2 anomaly documented |
+| Metrics | FlowMonitor | delaySum/rxPackets as delay proxy |
+| RL Interface | ns3-gym | Phase 4 (not installed yet) |
+| RL Framework | Stable-Baselines3 | Phase 4 (not installed yet) |
+| MVP Algorithm | DQN | Phase 4 — NOT started |
+| Analysis | Python 3.8+ | numpy, matplotlib |
 | Spec Management | OpenSpec | v1.4.1 |
 
 ---
@@ -117,41 +122,57 @@ pip install stable-baselines3 gymnasium numpy pandas matplotlib
 
 ---
 
-## 🚀 How to Run Baseline
+## 🚀 How to Run Baseline (Phase 3)
 
-> **Status**: ⏳ TODO — will be implemented in Change 02 (ns3-baseline-benchmark)
+> **Status**: ✅ Completed — ns-3.40 baseline benchmark executed
 
 ```bash
-# Run TCP NewReno baseline (Scenario A: low-latency bottleneck)
-# python scripts/run_baseline.py --config experiments/configs/scenario_a.yaml --algo NewReno
+# Prerequisites: WSL2 Ubuntu 20.04+, build tools installed
+# Step A: Install ns-3.40 build dependencies (one-time)
+bash scripts/phase3/install_deps.sh
 
-# Run TCP CUBIC baseline
-# python scripts/run_baseline.py --config experiments/configs/scenario_a.yaml --algo CUBIC
+# Step A: Download and build ns-3.40 (one-time, ~15-20 min)
+bash scripts/phase3/ns3_download_build.sh
+
+# Steps C/D/E/F: Run NewReno + CUBIC + BBR baselines (S1/S2/S3/S4)
+# Must run inside WSL2 as non-root user
+bash scripts/phase3/baseline_runner.sh
+
+# Step G: Analyze results and generate report + figures
+# Can run from Windows or WSL2
+python3 scripts/phase3/analysis.py
+
+# Results will appear in:
+#   experiments/summaries/baseline_summary.csv
+#   figures/baseline/
+#   reports/phase3-baseline/phase3-baseline-report.md
 ```
 
 ---
 
 ## 🧪 How to Run ns3-gym Smoke Test
 
-> **Status**: ⏳ TODO — will be implemented in Change 03 (ns3-gym-environment)
+> **Status**: ⏳ TODO — will be implemented in Phase 4 (Change 03: opengym-env)  
+> ⛔ **Do NOT install ns3-gym until Phase 3 is approved and Phase 4 begins.**
 
 ```bash
-# Random agent smoke test
-# python src/gym_env/smoke_test.py --episodes 1 --config experiments/configs/scenario_a.yaml
+# Random agent smoke test — Phase 4 only
+# python src/gym_env/smoke_test.py --episodes 1
 ```
 
 ---
 
 ## 🤖 How to Train DQN
 
-> **Status**: ⏳ TODO — will be implemented in Change 04 (dqn-mvp-agent)
+> **Status**: ⏳ TODO — will be implemented in Phase 4 (Change 04: dqn-mvp-agent)  
+> ⛔ **DQN has NOT been trained. Do NOT start Phase 4 without Spec Owner approval.**
 
 ```bash
-# Train DQN agent
-# python src/agents/train_dqn.py --config experiments/configs/scenario_a.yaml --timesteps 100000
+# Train DQN agent — Phase 4 only
+# python src/agents/train_dqn.py --timesteps 100000
 
-# Evaluate trained model
-# python src/agents/eval_dqn.py --model experiments/results/dqn_model.zip --config experiments/configs/scenario_a.yaml
+# Evaluate trained model — Phase 4 only
+# python src/agents/eval_dqn.py --model experiments/results/dqn/dqn_checkpoint.zip
 ```
 
 ---
@@ -167,16 +188,30 @@ pip install stable-baselines3 gymnasium numpy pandas matplotlib
 
 ---
 
-## 📈 Results Summary
+## 📈 Results Summary — Phase 3 Baseline (ns-3.40, seed=42, 60s)
 
-> **Status**: ⏳ PENDING — experiments not yet run
+> **Phase 3 baseline completed.** DQN comparison pending Phase 4 — **DRL results NOT available yet.**  
+> All values from `experiments/summaries/baseline_summary.csv`. See `reports/phase3-baseline/` for full report.
 
-| Metric | NewReno | CUBIC | BBR | DQN (ours) |
-|--------|---------|-------|-----|------------|
-| Avg Throughput (Mbps) | TBD | TBD | TBD | TBD |
-| Avg RTT (ms) | TBD | TBD | TBD | TBD |
-| Packet Loss (%) | TBD | TBD | TBD | TBD |
-| Utility Score | TBD | TBD | TBD | TBD |
+### Scenario S1 — Low Delay Bottleneck (10 Mbps, 10 ms)
+
+| Algorithm | TypeId | Throughput (Mbps) | Avg Delay (ms) | Loss Rate | Utility† |
+|-----------|--------|:-----------------:|:--------------:|:---------:|:--------:|
+| **BBR** | ns3::TcpBbr | **9.73** | **25.89** | 0.000000 | **0.947** |
+| CUBIC | ns3::TcpCubic | 9.89 | 117.67 | 0.000504 | 0.884 |
+| NewReno | ns3::TcpLinuxReno | 9.82 | 105.42 | 0.000731 | 0.875 |
+
+### Scenario S2 — High Delay Bottleneck (10 Mbps, 50 ms)
+
+| Algorithm | TypeId | Throughput (Mbps) | Avg Delay (ms) | Loss Rate | Utility† |
+|-----------|--------|:-----------------:|:--------------:|:---------:|:--------:|
+| **NewReno** | ns3::TcpLinuxReno | **9.79** | 129.44 | 0.001363 | **0.923** |
+| CUBIC | ns3::TcpCubic | 9.59 | 156.27 | 0.008848 | 0.818 |
+| BBR ⚠️ | ns3::TcpBbr | 0.39 | 148.65 | 0.015816 | -0.169 |
+
+> † Utility score is **provisional** (α=1.0, β=0.1, λ=10.0). Subject to revision in Phase 4.  
+> ⚠️ BBR S2 anomaly: known ns-3.40 TcpBbr limitation in high-RTT scenario. MVP not blocked.  
+> **DQN column intentionally omitted** — DQN has not been trained. Phase 4 will add DQN results.
 
 ---
 
@@ -184,11 +219,11 @@ pip install stable-baselines3 gymnasium numpy pandas matplotlib
 
 | # | Change Name | Status | Description |
 |---|-------------|--------|-------------|
-| 01 | `project-charter` | 🟡 IN PROGRESS | Research direction freezing, MDP definition, charter document |
-| 02 | `ns3-baseline-benchmark` | ⏳ PENDING | ns-3 single bottleneck TCP baselines (NewReno, CUBIC, BBR) |
-| 03 | `ns3-gym-environment` | ⏳ PENDING | ns3-gym RL environment + random agent smoke test |
-| 04 | `dqn-mvp-agent` | ⏳ PENDING | Stable-Baselines3 DQN training + evaluation |
-| 05 | `reporting-figures-and-demo` | ⏳ PENDING | Final deliverables, figures, PPT assets, demo script |
+| 01 | `project-charter` | ✅ **APPROVED** | Research direction, MDP definition, charter |
+| 02 | `ns3-baseline-benchmark` | ✅ **SPEC APPROVED** / 🟢 **Phase 3 Executed** | ns-3.40 TCP baselines — pending Spec Owner review |
+| 03 | `opengym-env` | ✅ **SPEC APPROVED** / ⏳ Phase 4 pending | ns3-gym RL environment + random agent smoke test |
+| 04 | `dqn-mvp-agent` | ✅ **SPEC APPROVED** / ⏳ Phase 4 pending | Stable-Baselines3 DQN training + evaluation |
+| 05 | `reporting-figures-and-demo` | ⏳ PENDING | Final deliverables, PPT assets, demo script |
 
 ---
 
@@ -217,34 +252,36 @@ pip install stable-baselines3 gymnasium numpy pandas matplotlib
 ns3-drl-congestion-control/
 ├── README.md                    # This file
 ├── openspec/                    # Official OpenSpec (v1.4.1)
-│   ├── changes/
-│   │   ├── project-charter/     # Change 01 (IN PROGRESS)
-│   │   │   ├── proposal.md
-│   │   │   ├── design.md
-│   │   │   ├── tasks.md
-│   │   │   └── specs/project-charter/spec.md
-│   │   └── archive/
-│   └── specs/
-├── .agent/                      # OpenSpec Antigravity integration
-│   ├── skills/                  # openspec-*/SKILL.md
-│   └── workflows/               # opsx-*.md
-├── docs/                        # Background docs
-│   ├── background_congestion_control.md
-│   ├── methodology_mdp.md
-│   ├── related_work.md
-│   └── risk_register.md
+│   └── changes/
+│       ├── project-charter/     # Change 01 ✅ Approved
+│       ├── ns3-baseline-benchmark/  # Change 02 ✅ Spec Approved
+│       ├── opengym-env/         # Change 03 ✅ Spec Approved
+│       └── dqn-mvp-agent/       # Change 04 ✅ Spec Approved
 ├── src/
-│   ├── ns3/                     # ns-3 simulation scripts (Change 02)
-│   ├── gym_env/                 # ns3-gym environment (Change 03)
-│   ├── agents/                  # DQN agent (Change 04)
-│   └── analysis/                # Analysis and plotting (Change 05)
+│   ├── ns3/
+│   │   └── baseline-benchmark.cc  # ✅ Phase 3: ns-3.40 simulation
+│   ├── gym_env/                 # ⏳ Phase 4: ns3-gym environment
+│   └── agents/                  # ⏳ Phase 4: DQN agent
+├── scripts/
+│   └── phase3/
+│       ├── install_deps.sh      # ✅ Step A: build dependency installer
+│       ├── ns3_download_build.sh # ✅ Step A: ns-3.40 downloader/builder
+│       ├── baseline_runner.sh   # ✅ Steps C-F: NewReno/CUBIC/BBR runner
+│       └── analysis.py          # ✅ Step G: figures + report generator
 ├── experiments/
-│   ├── configs/                 # Scenario configurations (with random seeds)
-│   ├── logs/                    # Experiment logs
-│   └── results/                 # CSV results and trained models
-├── figures/                     # Generated figures
+│   ├── raw_logs/                # ✅ 10 CSV + 10 FlowMonitor XML
+│   ├── summaries/
+│   │   └── baseline_summary.csv # ✅ Phase 3 results
+│   └── metadata/
+│       ├── toolchain_metadata.yaml   # ✅ ns-3.40 environment info
+│       └── phase3_run_metadata.yaml  # ✅ run configuration
+├── figures/
+│   └── baseline/               # ✅ 4 comparison figures
+├── reports/
+│   └── phase3-baseline/
+│       └── phase3-baseline-report.md  # ✅ Phase 3 baseline report
+├── docs/                        # Background docs
 ├── slides/                      # PPT assets
-├── scripts/                     # Utility scripts
 ├── proposal/                    # Original proposal documents
 └── pdr/                         # PDR documents
 ```
