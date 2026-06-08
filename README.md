@@ -3,8 +3,8 @@
 > **以深度強化學習進行單一瓶頸鏈路壅塞控制與吞吐量最佳化**  
 > **Deep Reinforcement Learning for Congestion Control and Throughput Optimization over a Single Bottleneck Link**
 >
-> **專案狀態:** 🟡 *Phase 4: DRL MVP Implementation — 🔄 In Progress (2026-06-08)*  
-> **DQN 訓練狀態:** 🔄 Training S1 (30k steps, seed=42) | Smoke test: ✅ S1+S2 PASS
+> **專案狀態:** 🟢 *Phase 4: DRL MVP Implementation — ✅ Complete (2026-06-08) | Pending Spec Owner Review*  
+> **DQN 訓練狀態:** ✅ S1 Complete (30k steps, ep_rew_mean=84.4) | Eval+Compare done | Pending Phase 5 approval
 
 > 🎥 **Demo Video**: TODO — 正式 demo video 將在 Change 05 完成後補上。
 
@@ -97,7 +97,7 @@ Progress: 4/4 artifacts complete
 | Metrics | FlowMonitor | delaySum/rxPackets as delay proxy |
 | **RL Interface** | **ns3-gym** | **✅ Installed** (tkn-tub/ns3-gym, commit cfff7f3) |
 | **RL Framework** | **Stable-Baselines3** | **✅ v2.4.1** (Phase 4) |
-| **RL Algorithm** | **DQN (SB3)** | **🔄 Training S1** (30k steps, seed=42) |
+| **RL Algorithm** | **DQN (SB3)** | **✅ Trained S1** (30k steps, ep_rew_mean=84.4, seed=42) |
 | **PyTorch** | torch | **2.4.1+cu121** (CPU mode for training) |
 | **Gymnasium** | gymnasium | **1.0.0** |
 | Analysis | Python 3.8+ | numpy, matplotlib |
@@ -185,7 +185,8 @@ bash scripts/phase4/run_smoke_test.sh
 
 ## 🤖 How to Train DQN (Phase 4 Step 4)
 
-> **Status**: 🔄 Training in progress — S1, 30k timesteps, seed=42
+> **Status**: ✅ Complete — S1 trained (30k steps, seed=42, ep_rew_mean=84.4)  
+> **Model**: `experiments/drl/models/dqn_s1_seed42.zip`
 
 ```bash
 # Train DQN agent (inside WSL2)
@@ -207,6 +208,17 @@ python3 src/analysis/compare_dqn_baseline.py --scenarios S1 S2
 > - Action = sender-side rate-control abstraction (Fallback Option B). Does NOT directly modify kernel TCP.
 > - delay metric = FlowMonitor delaySum/rxPackets proxy, not direct RTT.
 > - Reward weights (α=1.0, β=0.1, λ=10.0) are provisional; may be revised in Change 05.
+
+**DQN S1 Results (2026-06-08, deterministic eval, 5 episodes):**
+
+| Algorithm | Throughput (Mbps) | Delay (ms) | Loss Rate | Utility |
+|-----------|:-----------------:|:----------:|:---------:|:-------:|
+| BBR | 9.727 | **25.9** | 0.000 | **0.947** |
+| **DQN (ours)** | **9.877** | 115.3 | 0.004 | **0.900** |
+| CUBIC | 9.894 | 117.7 | 0.001 | 0.884 |
+| NewReno | 9.824 | 105.4 | 0.001 | 0.875 |
+
+> Honest result: DQN ranks 2nd on utility (better than CUBIC/NewReno, below BBR). See `reports/phase4-drl-mvp/phase4-drl-report.md`.
 
 ---
 

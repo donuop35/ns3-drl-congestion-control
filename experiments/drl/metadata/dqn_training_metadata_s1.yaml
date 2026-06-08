@@ -1,0 +1,37 @@
+action_note: 'Fallback Option B: sender-side rate-control abstraction'
+action_space: Discrete(3) {0=decrease, 1=keep, 2=increase}
+algorithm: DQN
+delay_note: delay_or_rtt_signal = delaySum/rxPackets proxy, not direct RTT
+hyperparameters:
+  batch_size: 64
+  buffer_size: 10000
+  exploration_final_eps: 0.05
+  exploration_fraction: 0.3
+  gamma: 0.99
+  learning_rate: 0.0001
+  learning_starts: 1000
+  target_update_interval: 500
+log_file: experiments/drl/logs/dqn_train_s1_seed42.monitor.csv
+model_path: experiments/drl/models/dqn_s1_seed42.zip
+obs_fields:
+- throughput_norm
+- delay_norm
+- loss_norm
+- cwnd_norm
+- prev_action_norm
+phase: Phase 4 DRL MVP
+policy: MlpPolicy
+reward_weights:
+  alpha: 1.0
+  beta: 0.1
+  lambda: 10.0
+  note: Provisional weights per Change 03/04. Subject to revision in Change 05.
+sb3_version: 2.4.1
+scenario: S1
+seed: 42
+torch_version: !!python/object/new:torch.torch_version.TorchVersion
+- 2.4.1+cu121
+total_timesteps: 30000
+training_duration_s: 1097.450944
+training_end: '2026-06-08T16:47:40.979648+00:00'
+training_start: '2026-06-08T16:29:23.528704+00:00'
