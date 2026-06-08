@@ -37,6 +37,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Any
 
+# Fix ns3gym/protobuf 5.x compatibility (must be set before importing ns3gym)
+os.environ.setdefault('PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION', 'python')
+
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
