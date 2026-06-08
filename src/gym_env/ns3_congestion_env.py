@@ -35,7 +35,7 @@ import signal
 import atexit
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, Optional as Opt
 
 # Fix ns3gym/protobuf 5.x compatibility (must be set before importing ns3gym)
 os.environ.setdefault('PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION', 'python')
@@ -49,7 +49,7 @@ try:
     HAS_NS3GYM = True
 except ImportError:
     HAS_NS3GYM = False
-    print("[WARN] ns3gym not importable. Using subprocess-based fallback interface.")
+    print("[WARN] ns3gym not importable. Using dummy fallback.")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Paths
@@ -60,8 +60,10 @@ PROJECT_ROOT = SCRIPT_DIR.parent.parent
 NS3_HOME = Path(os.environ.get("NS3_HOME", str(
     Path.home() / "ns-allinone-3.40" / "ns-3.40"
 )))
-NS3_BIN = NS3_HOME / "ns3"
-ENV_SCRIPT = "opengym-congestion-env"
+# Binary built via: ns3 build scratch/congestion-env
+NS3_BIN_DIR = NS3_HOME / "build" / "scratch" / "congestion-env"
+NS3_BINARY  = NS3_BIN_DIR / "ns3.40-congestion-env-optimized"
+ENV_SCRIPT  = str(NS3_BINARY)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Constants (per Change 03/04 spec)
@@ -144,6 +146,7 @@ class Ns3CongestionEnv(gym.Env):
 
         # Internal state
         self._ns3env     = None
+        self._ns3proc    = None   # subprocess handle for ns-3 binary
         self._step_count = 0
         self._ep_count   = 0
         self._prev_action = 1  # keep
@@ -211,24 +214,27 @@ class Ns3CongestionEnv(gym.Env):
                   f"port={self.port} seed={self.seed_val}")
 
         if not HAS_NS3GYM:
-            # Return dummy zero obs for testing without ns3gym
             obs = np.zeros(OBS_DIM, dtype=np.float32)
             info = self._make_info(obs, 0)
             return obs, info
 
         try:
-            ns3_cmd = self._build_ns3_command()
+            # Launch ns-3 binary manually (startSim=0) to control binary path
+            self._launch_ns3_binary()
+            # Give ns-3 time to start ZMQ server
+            time.sleep(1.5)
             self._ns3env = ns3env.Ns3Env(
                 port=self.port,
                 stepTime=self.step_interval,
-                startSim=1,
+                startSim=0,        # We already started the sim above
                 simSeed=self.seed_val,
-                simArgs=ns3_cmd,
+                simArgs={},
                 debug=self.verbose,
             )
             obs = self._parse_obs(self._ns3env.reset())
         except Exception as e:
             print(f"[WARN] ns3env reset failed: {e}")
+            self._kill_ns3proc()
             obs = np.zeros(OBS_DIM, dtype=np.float32)
 
         info = self._make_info(obs, self._prev_action)
@@ -305,12 +311,63 @@ class Ns3CongestionEnv(gym.Env):
             except Exception:
                 pass
             self._ns3env = None
+        self._kill_ns3proc()
         if self._log_rows:
             self._flush_episode_log()
 
+    def _launch_ns3_binary(self):
+        """Launch ns-3 binary as subprocess, terminate previous if running."""
+        self._kill_ns3proc()
+        sim_args = self._build_sim_args()
+        binary   = str(NS3_BINARY)
+        if not os.path.exists(binary):
+            raise FileNotFoundError(
+                f"ns-3 binary not found: {binary}\n"
+                "Run: scripts/phase4/build_congestion_env.sh"
+            )
+        cmd = [binary] + sim_args.split()
+        if self.verbose:
+            print(f"[launch] {' '.join(cmd)}")
+        env_vars = os.environ.copy()
+        env_vars['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'python'
+        self._ns3proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE if not self.verbose else None,
+            stderr=subprocess.PIPE if not self.verbose else None,
+            env=env_vars,
+        )
+
+    def _kill_ns3proc(self):
+        """Terminate ns-3 subprocess if running."""
+        if self._ns3proc is not None:
+            try:
+                self._ns3proc.terminate()
+                self._ns3proc.wait(timeout=3)
+            except Exception:
+                try:
+                    self._ns3proc.kill()
+                except Exception:
+                    pass
+            self._ns3proc = None
+
     # ── Helpers ───────────────────────────────────────────────────────────────
+    def _build_sim_args(self) -> str:
+        """Build ns3gym simArgs string for ns-3 binary execution."""
+        args = [
+            f"--openGymPort={self.port}",
+            f"--scenario={self.scenario}",
+            f"--simDuration={self.sim_duration}",
+            f"--seed={self.seed_val}",
+            f"--maxSteps={self.max_steps}",
+            f"--stepInterval={self.step_interval}",
+            f"--alpha={self.alpha}",
+            f"--beta={self.beta}",
+            f"--lambdaW={self.lambda_w}",
+        ]
+        return " ".join(args)
+
     def _build_ns3_command(self) -> dict:
-        """Build ns3gym simArgs dict for ns-3 simulation."""
+        """Build ns3gym simArgs dict (legacy API)."""
         return {
             "--scenario":     self.scenario,
             "--openGymPort":  str(self.port),
