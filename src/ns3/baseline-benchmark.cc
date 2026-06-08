@@ -21,11 +21,13 @@
 
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
+#include "ns3/flow-monitor-module.h"
 #include "ns3/flow-monitor-helper.h"
 #include "ns3/internet-module.h"
 #include "ns3/network-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/traffic-control-module.h"
+#include "ns3/ipv4-flow-classifier.h"
 
 #include <fstream>
 #include <iomanip>
@@ -120,7 +122,7 @@ int
 main(int argc, char* argv[])
 {
     // ── Command-line parameters ──
-    std::string tcpVariant = "TcpNewReno";
+    std::string tcpVariant = "TcpLinuxReno"; // ns-3.40 name for NewReno
     std::string scenarioId = "S1";
     double simDuration = 60.0;
     uint32_t seed = 42;
@@ -132,7 +134,7 @@ main(int argc, char* argv[])
 
     CommandLine cmd(__FILE__);
     cmd.AddValue("tcpVariant",
-                 "TCP congestion control variant (TcpNewReno, TcpCubic, TcpBbr)",
+                 "TCP variant TypeId (ns3::TcpLinuxReno, ns3::TcpCubic, ns3::TcpBbr)",
                  tcpVariant);
     cmd.AddValue("scenario", "Scenario ID: S1, S2, S3, S4", scenarioId);
     cmd.AddValue("simDuration", "Total simulation duration (seconds)", simDuration);
@@ -163,9 +165,9 @@ main(int argc, char* argv[])
         NS_LOG_WARN("TCP variant '" << tcpVariant
                                    << "' not found. Falling back to TcpNewReno.");
         tcpFound = false;
-        tcpName = "TcpNewReno_fallback";
+        tcpName = "TcpLinuxReno_fallback";
         TypeId fallbackTid;
-        TypeId::LookupByNameFailSafe("ns3::TcpNewReno", &fallbackTid);
+        TypeId::LookupByNameFailSafe("ns3::TcpLinuxReno", &fallbackTid);
         Config::SetDefault("ns3::TcpL4Protocol::SocketType",
                            TypeIdValue(fallbackTid));
     }
@@ -229,7 +231,7 @@ main(int argc, char* argv[])
 
     // Cross traffic link (S4)
     NetDeviceContainer devCrossSenderRouter;
-    if (!crossSenderNode.IsEmpty())
+    if (crossSenderNode.GetN() > 0)
     {
         devCrossSenderRouter = accessLink.Install(crossSenderNode.Get(0), router0Node.Get(0));
     }
@@ -240,7 +242,7 @@ main(int argc, char* argv[])
     internet.Install(router0Node);
     internet.Install(router1Node);
     internet.Install(receiverNode);
-    if (!crossSenderNode.IsEmpty())
+    if (crossSenderNode.GetN() > 0)
     {
         internet.Install(crossSenderNode);
     }
@@ -257,7 +259,7 @@ main(int argc, char* argv[])
     ipv4.SetBase("10.1.3.0", "255.255.255.0");
     Ipv4InterfaceContainer ifRouterReceiver = ipv4.Assign(devRouterReceiver);
 
-    if (!crossSenderNode.IsEmpty())
+    if (crossSenderNode.GetN() > 0)
     {
         ipv4.SetBase("10.1.4.0", "255.255.255.0");
         ipv4.Assign(devCrossSenderRouter);
@@ -289,7 +291,7 @@ main(int argc, char* argv[])
     sourceApps.Stop(Seconds(simDuration - 0.5));
 
     // Cross traffic application (S4)
-    if (!crossSenderNode.IsEmpty())
+    if (crossSenderNode.GetN() > 0)
     {
         uint16_t crossPort = 5002;
         Address crossReceiverAddr(InetSocketAddress(ifRouterReceiver.GetAddress(1), crossPort));

@@ -12,8 +12,10 @@
 
 set -e
 
+NS3_ALLINONE="ns-allinone-3.40"
 NS3_VERSION="3.40"
-NS3_INNER="$HOME/ns-allinone-3.${NS3_VERSION}/ns-${NS3_VERSION}"
+NS3_HOME="/home/donuop"
+NS3_INNER="${NS3_HOME}/${NS3_ALLINONE}/ns-${NS3_VERSION}"
 PROJECT_WIN_PATH="/mnt/c/Users/donuop/Documents/grassland/ns3-drl-congestion-control"
 
 RAW_LOGS_DIR="${PROJECT_WIN_PATH}/experiments/raw_logs"
@@ -72,13 +74,13 @@ run_experiment() {
     return 0
 }
 
-# ── Step C: NewReno Baseline ──────────────────────────────────────────────────
+# ── Step C: NewReno (TcpLinuxReno in ns-3.40) Baseline ──────────────────────
 echo ""
 echo "╔══════════════════════════════════════════════════════════╗"
-echo "║  Step C: NewReno Baseline                                ║"
+echo "║  Step C: NewReno (TcpLinuxReno) Baseline                 ║"
 echo "╚══════════════════════════════════════════════════════════╝"
-run_experiment "TcpNewReno" "S1" "run_001"
-run_experiment "TcpNewReno" "S2" "run_001"
+run_experiment "TcpLinuxReno" "S1" "run_001"
+run_experiment "TcpLinuxReno" "S2" "run_001"
 
 # ── Step D: CUBIC Baseline ────────────────────────────────────────────────────
 echo ""
@@ -94,9 +96,9 @@ echo "╔═══════════════════════�
 echo "║  Step E: BBR Baseline (non-blocking; fallback if fail)  ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 
-# Check BBR availability
+# Check BBR availability (tcp-bbr.cc confirmed present in ns-3.40)
 BBR_STATUS="NOT_FOUND"
-if ls "${NS3_INNER}/src/internet/model/tcp-bbr.cc" 2>/dev/null; then
+if [ -f "${NS3_INNER}/src/internet/model/tcp-bbr.cc" ]; then
     BBR_STATUS="FOUND"
 fi
 echo "[INFO] BBR source availability: ${BBR_STATUS}"
@@ -137,12 +139,12 @@ echo "║  Step F: S3/S4 Optional Scenarios (non-blocking)        ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 
 echo "[INFO] Attempting S3 (should-have, non-blocking)..."
-run_experiment "TcpNewReno" "S3" "run_001" || echo "[WARN] S3 NewReno failed (non-blocking)"
-run_experiment "TcpCubic"   "S3" "run_001" || echo "[WARN] S3 CUBIC failed (non-blocking)"
+run_experiment "TcpLinuxReno" "S3" "run_001" || echo "[WARN] S3 TcpLinuxReno failed (non-blocking)"
+run_experiment "TcpCubic"     "S3" "run_001" || echo "[WARN] S3 CUBIC failed (non-blocking)"
 
 echo "[INFO] Attempting S4 (optional, non-blocking)..."
-run_experiment "TcpNewReno" "S4" "run_001" || echo "[WARN] S4 NewReno failed (non-blocking)"
-run_experiment "TcpCubic"   "S4" "run_001" || echo "[WARN] S4 CUBIC failed (non-blocking)"
+run_experiment "TcpLinuxReno" "S4" "run_001" || echo "[WARN] S4 TcpLinuxReno failed (non-blocking)"
+run_experiment "TcpCubic"     "S4" "run_001" || echo "[WARN] S4 CUBIC failed (non-blocking)"
 
 # ── Write run metadata ─────────────────────────────────────────────────────────
 METADATA_FILE="${METADATA_DIR}/phase3_run_metadata.yaml"

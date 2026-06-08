@@ -13,10 +13,10 @@
 
 set -e
 
-NS3_VERSION="3.40"
-NS3_ALLINONE="ns-allinone-3.${NS3_VERSION}"
+NS3_ALLINONE="ns-allinone-3.40"
 NS3_DIR="$HOME/${NS3_ALLINONE}"
 NS3_SOURCE_URL="https://www.nsnam.org/releases/${NS3_ALLINONE}.tar.bz2"
+NS3_VERSION="3.40"
 
 # Windows mount path to project repo
 PROJECT_WIN_PATH="/mnt/c/Users/donuop/Documents/grassland/ns3-drl-congestion-control"
