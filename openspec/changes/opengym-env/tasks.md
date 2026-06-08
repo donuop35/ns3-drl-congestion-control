@@ -151,8 +151,8 @@
 
 ## 11. Final Review
 
-- [ ] 11.1 Run `openspec status --change "opengym-env" --json` and confirm `isComplete: true`
-- [ ] 11.2 Run `openspec validate "opengym-env" --type change --strict --json` and confirm `valid: true, issues: []`
-- [ ] 11.3 Submit Change 03 to Spec Owner for review
-- [ ] 11.4 Spec Owner approval granted → approved to proceed to Change 04 proposal
-- [ ] 11.5 Do NOT run /opsx:apply for Change 03 until Phase 3 is explicitly approved by Spec Owner
+- [x] 11.1 Run `openspec status --change "opengym-env" --json` and confirm `isComplete: true` ✅ **confirmed** — `isComplete: true`, 4/4 artifacts `done`, 8 spec files recognized
+- [x] 11.2 Run `openspec validate "opengym-env" --type change --strict --json` and confirm `valid: true, issues: []` ✅ **confirmed** — `valid: true, issues: [], passed: 1, failed: 0`
+- [x] 11.3 Submit Change 03 to Spec Owner for review ✅ **submitted** — commit ce914a768d0766ca7d62e18343b5d4f5636182fe
+- [x] 11.4 Spec Owner approval granted → approved to proceed to Change 04 proposal ✅ **approved** (Spec Owner, 2026-06-08) — proposal.md / design.md / tasks.md / specs all accepted
+- [ ] 11.5 /opsx:apply for Change 03 — **Spec Owner approval for Change 03 specification is granted, but /opsx:apply is deferred until Phase 3: Baseline First. Do not apply until Phase 3 explicitly approved.**
