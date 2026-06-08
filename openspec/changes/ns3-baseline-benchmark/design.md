@@ -2,9 +2,11 @@
 
 本 change 是 Change 01 project-charter 的直接下游。根據 Change 01 凍結的技術路線：
 
-- **Simulator**: ns-3（>= 3.32）
+- **Simulator**: **ns-3.40**（正式凍結，Spec Owner 决策 OQ-02.01, 2026-06-08）
+  > ⚠️ 不得自行改用 ns-3.35、3.36 或最新穩定版。若 ns-3.40 無法穩定執行，必須停止並回報 Spec Owner。
+  > 理由：ns3-gym 官方 README 直接示範使用 ns-allinone-3.40，搭配 app-ns-3.36+ branch；因此 ns-3.40 比最新穩定版更適合本專案的低風險路徑。
 - **Baselines**: NewReno（required）、CUBIC（required）、BBR（strongly preferred, non-blocking）
-- **Metrics**: throughput、RTT、packet loss rate、utility score
+- **Metrics**: throughput、RTT、packet loss rate、utility score（provisional）
 - **Topology**: single bottleneck path（合理的 ns-3 router-based bottleneck topology 亦允許）
 - **Scenarios**: Scenario A（低延遲）、Scenario B（高延遲）
 
@@ -64,8 +66,9 @@
 
 ### D-04: BBR Integration Decision Gate
 
-**Decision**: 在開始 Change 02 implementation 時，先確認 ns-3 版本是否 >= 3.32 且 BBR module 可用。若可用且整合成本 <= 0.5 工作日，則納入 BBR baseline；否則以「non-blocking optional」記錄並跳過。  
-**Rationale**: BBR 是 strongly preferred（非 required）；不得讓 BBR 阻塞 NewReno/CUBIC 的基礎交付。
+**Decision**: 在開始 Change 02 implementation 時，先確認 **ns-3.40** BBR module 是否可用。若可用且整合成本 <= 0.5 工作日，則納入 BBR baseline；否則以「non-blocking optional」記錄並跳過。  
+**Rationale**: BBR 是 strongly preferred（非 required）；不得讓 BBR 阻塞 NewReno/CUBIC 的基礎交付。  
+**ns-3 version**: 目標版本為 **ns-3.40**（Spec Owner 正式凍結）；不得自行改用其他版本。
 
 ### D-05: Experiment Config Format
 
@@ -95,9 +98,9 @@
 
 ## Open Questions
 
-| # | 問題 | 影響 | 決策時間 |
+| # | 問題 | 影響 | 决策時間 |
 |---|------|------|---------|
-| OQ-02.01 | ns-3 目標版本？（3.35, 3.36, 3.37, 3.38?）BBR 確認 >= 3.32 即可，但建議使用最新穩定版 | 高 | Change 02 proposal 驗收通過後，implementation 開始前 |
-| OQ-02.02 | ns3-gym 與哪個 ns-3 版本相容？（需要 Change 03 銜接規劃）| 中 | Change 02 implementation 中途確認 |
-| OQ-02.03 | ns-3 C++ script 還是 Python binding？（D-02 已有 default，但視環境而定）| 低 | Change 02 implementation 開始時確認 |
-| OQ-02.04 | Scenario 參數是否需要更多情境？（目前 A + B + optional C）| 低 | 可在 implementation 中調整，不需 spec owner 另外批准 |
+| OQ-02.01 | ns-3 目標版本？ | 高 | ✅ **Spec Owner 正式决策 2026-06-08**：使用 **ns-3.40**。理由：ns3-gym 官方 README 直接示範使用 ns-allinone-3.40，搭配 app-ns-3.36+ branch；這是本專案的低風險路徑。 |
+| OQ-02.02 | ns3-gym 與哪個 ns-3 版本相容？（需要 Change 03 銅接規劃）| 中 | ✅ 不阻塞 change-02，ns3-gym 與 ns-3.40 相容性留到 change-03 為第一步驗證 |
+| OQ-02.03 | ns-3 C++ script 還是 Python binding？（D-02 已有 default，但視環境而定）| 低 | ⏳ Change 02 implementation 開始時確認 |
+| OQ-02.04 | Scenario 參數是否需要更多情境？（目前 A + B + optional C）| 低 | ⏳ 可在 implementation 中調整，不需 spec owner 另外批准 |

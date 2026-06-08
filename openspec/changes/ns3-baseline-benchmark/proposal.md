@@ -4,12 +4,14 @@
 
 **Upstream Reference**: 本 change 依據 Change 01 project-charter（已通過 Spec Owner 驗收，2026-06-08）中凍結的 baseline 選擇（NewReno/CUBIC/BBR）、metrics（throughput/RTT/loss/utility）與 topology 邊界（single bottleneck path）。
 
+> 🔒 **ns-3 版本正式凍結（Spec Owner 决策 OQ-02.01, 2026-06-08）**: 本 change 使用 **ns-3.40** 作為目標版本。不得自行改用 ns-3.35、3.36 或最新穩定版。若 ns-3.40 無法穩定執行，必須停止並回報 Spec Owner。
+
 ## What Changes
 
 本 change 新增以下功能（僅限 ns-3 baseline 相關，不含任何 RL 程式碼）：
 
-- **ns-3 single bottleneck topology**：建立可配置的 `sender → (optional router) → receiver` topology，router 即為瓶頸節點
-- **TCP baseline scripts**：ns-3 C++ 或 Python 腳本，執行 NewReno 和 CUBIC baseline；BBR 若 ns-3 版本支援則納入
+- **ns-3 single bottleneck topology**：建立可配置的 `sender → (optional router) → receiver` topology，router 即為瓶頸節點；**目標版本凍結為 ns-3.40**
+- **TCP baseline scripts**：ns-3 C++ 或 Python 腳本，執行 NewReno 和 CUBIC baseline；BBR 若 ns-3.40 版本支援則納入
 - **Experiment configs**：`experiments/configs/scenario_a.yaml` 和 `scenario_b.yaml`（含固定 random seed）
 - **Log parsing scripts**：從 ns-3 輸出提取 throughput / RTT / packet loss CSV
 - **Baseline figures**：throughput comparison、RTT comparison、packet loss comparison 各一張
@@ -39,13 +41,13 @@
 ## Dependencies
 
 - ✅ Change 01 project-charter（已通過 Spec Owner 驗收）
-- ns-3 >= 3.32 安裝於 Linux/WSL 環境（待驗證）
-- BBR 模組可用性（ns-3 >= 3.32 需確認；若不可用移至 optional）
+- **ns-3.40**（正式凍結，不得自行改版）安裝於 Linux/WSL 環境（待驗證）
+- BBR 模組可用性（ns-3.40 需確認；若不可用移至 optional）
 - Python 3.9+ + numpy + pandas + matplotlib
 
 ## Acceptance Criteria
 
-- [ ] ns-3 single bottleneck topology 可正確建立（至少 PointToPoint bottleneck 或 router-based 等效）
+- [ ] ns-3.40 single bottleneck topology 可正確建立（至少 PointToPoint bottleneck 或 router-based 等效）
 - [ ] TCP NewReno baseline 可在 Scenario A 和 Scenario B 執行完成並產出 log
 - [ ] TCP CUBIC baseline 可在 Scenario A 和 Scenario B 執行完成並產出 log
 - [ ] BBR baseline 執行成功，或有明確文件說明為何移至 optional
@@ -53,6 +55,7 @@
 - [ ] `experiments/results/` 含至少一份 CSV（throughput / RTT / loss 欄位）
 - [ ] 至少 3 張 baseline 比較圖：throughput、RTT、packet loss
 - [ ] README 有可執行的 baseline 重現指令
-- [ ] 所有結果 random seed 固定，可重現
+- [ ] 相同情境下使用相同 random seed，產出的量化指標（throughput / RTT / loss）應在文件記錄的容差範圍內相符（metric-equivalent within documented tolerance；不要求 FlowMonitor XML byte-for-byte identical）
+- [ ] **utility_score 僅作為 baseline visualization metric（preliminary / provisional）**：公式與權重為 preliminary，最終 reward / utility 權重可於 Change 04 / Change 05 經 Spec Owner approval 後調整
 - [ ] **不包含任何 RL / ns3-gym / DQN 相關程式碼**
 - [ ] Spec Owner 驗收通過，才啟動 Change 03

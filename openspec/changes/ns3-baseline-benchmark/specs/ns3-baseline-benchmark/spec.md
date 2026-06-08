@@ -22,7 +22,7 @@ The system SHALL provide a configurable ns-3 single bottleneck network topology 
 #### Scenario: Reproducibility with fixed seed
 
 - **WHEN** the same scenario config is run twice with the same `random_seed`
-- **THEN** the ns-3 simulation MUST produce identical output logs (byte-for-byte equivalent FlowMonitor XML)
+- **THEN** the ns-3 simulation SHOULD produce metric-equivalent outputs (throughput, RTT, loss) within documented tolerance. Note: byte-for-byte identical FlowMonitor XML is NOT required; only metric-level equivalence within tolerance is expected.
 
 ---
 
@@ -31,7 +31,7 @@ The system SHALL provide a configurable ns-3 single bottleneck network topology 
 The system SHALL execute TCP congestion control baseline experiments where:
 - TCP NewReno benchmark MUST run for all defined scenarios and produce output logs
 - TCP CUBIC benchmark MUST run for all defined scenarios and produce output logs
-- TCP BBR benchmark SHALL run if ns-3 version >= 3.32 and BBR module is available; otherwise MUST be documented as non-blocking optional
+- TCP BBR benchmark SHALL run if **ns-3.40** BBR module is available; otherwise MUST be documented as non-blocking optional
 - Each experiment SHALL run for the full simulation duration specified in the config
 - Experiments MUST NOT include any RL, ns3-gym, or DQN code
 
@@ -59,7 +59,7 @@ The system SHALL extract the following metrics from ns-3 simulation output into 
 - `throughput_mbps`: average goodput over the experiment duration, in Mbps
 - `rtt_ms`: average RTT over the experiment duration, in milliseconds
 - `loss_rate`: packet loss rate as a fraction [0, 1]
-- `utility_score`: composite score computed as `throughput_norm - 0.1 * rtt_norm - 10.0 * loss_rate` (weights may be adjusted in Change 05 with Spec Owner approval)
+- `utility_score`: **preliminary baseline visualization metric only**. The system SHALL compute and include a provisional composite score for visualization purposes. The formula (`throughput_norm - 0.1 * rtt_norm - 10.0 * loss_rate`) and weights are **provisional** and may be revised in Change 04 / Change 05 with Spec Owner approval. This field MUST NOT be treated as the final reward function definition.
 - `algo`: TCP algorithm name (NewReno, CUBIC, BBR)
 - `scenario`: scenario identifier (scenario_a, scenario_b)
 - `random_seed`: the seed used for this run
