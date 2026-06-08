@@ -3,8 +3,8 @@
 > **以深度強化學習進行單一瓶頸鏈路壅塞控制與吞吐量最佳化**  
 > **Deep Reinforcement Learning for Congestion Control and Throughput Optimization over a Single Bottleneck Link**
 >
-> **專案狀態:** 🟢 *Phase 3: Baseline Benchmark — ✅ Completed（2026-06-08）| Pending Spec Owner Review*  
-> **DQN 訓練狀態:** ⏳ Not started — Phase 4 will implement DQN MVP after Phase 3 approval
+> **專案狀態:** 🟡 *Phase 4: DRL MVP Implementation — 🔄 In Progress (2026-06-08)*  
+> **DQN 訓練狀態:** 🔄 Training S1 (30k steps, seed=42) | Smoke test: ✅ S1+S2 PASS
 
 > 🎥 **Demo Video**: TODO — 正式 demo video 將在 Change 05 完成後補上。
 
@@ -62,7 +62,7 @@ openspec --version    # 1.4.1
 openspec update --force   # Updated Antigravity (v1.4.1)
 ```
 
-> ⚠️ **Node.js 版本警告**：目前環境為 Node.js **v20.11.1**，低於 OpenSpec 官方要求的 **v20.19.0+**。目前功能正常（僅有 `EBADENGINE` WARN）。Change 02 implementation 開始前，建議使用 `nvm install 20.19.0 && nvm use 20.19.0` 升級，或由 Spec Owner 演出明確 waiver。
+> ℹ️ **Node.js 版本**: 現在使用 Node.js **v20.20.2** (Windows) ≥ 官方要求的 20.19.0+。
 
 **Generated files:**
 ```
@@ -95,9 +95,11 @@ Progress: 4/4 artifacts complete
 | TCP CUBIC | `ns3::TcpCubic` | Available in ns-3.40 |
 | TCP BBR | `ns3::TcpBbr` | Available; S2 anomaly documented |
 | Metrics | FlowMonitor | delaySum/rxPackets as delay proxy |
-| RL Interface | ns3-gym | Phase 4 (not installed yet) |
-| RL Framework | Stable-Baselines3 | Phase 4 (not installed yet) |
-| MVP Algorithm | DQN | Phase 4 — NOT started |
+| **RL Interface** | **ns3-gym** | **✅ Installed** (tkn-tub/ns3-gym, commit cfff7f3) |
+| **RL Framework** | **Stable-Baselines3** | **✅ v2.4.1** (Phase 4) |
+| **RL Algorithm** | **DQN (SB3)** | **🔄 Training S1** (30k steps, seed=42) |
+| **PyTorch** | torch | **2.4.1+cu121** (CPU mode for training) |
+| **Gymnasium** | gymnasium | **1.0.0** |
 | Analysis | Python 3.8+ | numpy, matplotlib |
 | Spec Management | OpenSpec | v1.4.1 |
 
@@ -150,30 +152,61 @@ python3 scripts/phase3/analysis.py
 
 ---
 
-## 🧪 How to Run ns3-gym Smoke Test
+## 🧪 How to Run ns3-gym Smoke Test (Phase 4 Step 3)
 
-> **Status**: ⏳ TODO — will be implemented in Phase 4 (Change 03: opengym-env)  
-> ⛔ **Do NOT install ns3-gym until Phase 3 is approved and Phase 4 begins.**
+> **Status**: ✅ Completed — Real ZMQ connection to ns-3.40 binary, S1 + S2 both PASS
 
 ```bash
-# Random agent smoke test — Phase 4 only
-# python src/gym_env/smoke_test.py --episodes 1
+# Prerequisites: ns3-gym installed, ns-3.40 binary built
+# Run inside WSL2
+export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+
+# Step 1: Clone + install ns3-gym (one-time)
+bash scripts/phase4/setup_ns3gym.sh
+bash scripts/phase4/build_opengym.sh
+python3 -c "from ns3gym import ns3env; print('ns3gym OK')"
+
+# Step 2: Build ns-3 OpenGym environment
+bash scripts/phase4/build_congestion_env.sh
+
+# Step 3: Run smoke test (S1 + S2, 10 steps each)
+bash scripts/phase4/run_smoke_test.sh
+# → Report: reports/phase4-drl-mvp/smoke-test-report.md
 ```
+
+**Smoke Test Results (2026-06-08):**
+
+| Scenario | ZMQ | Result | Sample obs | Sample reward |
+|----------|-----|--------|------------|---------------|
+| S1 (Low Delay, 10ms) | ✅ Real | ✅ PASS | `[0.478, 0.134, 0.0, 0.5, 0.5]` | 0.40–0.61 |
+| S2 (High Delay, 50ms) | ✅ Real | ✅ PASS | `[0.202, 0.198, 0.0, 0.5, 0.5]` | 0.30–0.56 |
 
 ---
 
-## 🤖 How to Train DQN
+## 🤖 How to Train DQN (Phase 4 Step 4)
 
-> **Status**: ⏳ TODO — will be implemented in Phase 4 (Change 04: dqn-mvp-agent)  
-> ⛔ **DQN has NOT been trained. Do NOT start Phase 4 without Spec Owner approval.**
+> **Status**: 🔄 Training in progress — S1, 30k timesteps, seed=42
 
 ```bash
-# Train DQN agent — Phase 4 only
-# python src/agents/train_dqn.py --timesteps 100000
+# Train DQN agent (inside WSL2)
+export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+export PYTHONPATH=/path/to/ns3-drl-congestion-control/src:$PYTHONPATH
 
-# Evaluate trained model — Phase 4 only
-# python src/agents/eval_dqn.py --model experiments/results/dqn/dqn_checkpoint.zip
+# Train S1 (30k steps for MVP)
+bash scripts/phase4/train_dqn.sh S1 30000 42
+
+# Evaluate trained model
+export MODEL=experiments/drl/models/dqn_s1_seed42.zip
+bash scripts/phase4/eval_dqn.sh "$MODEL" S1
+
+# Generate DQN vs Baseline comparison figures
+python3 src/analysis/compare_dqn_baseline.py --scenarios S1 S2
 ```
+
+> **Limitations**:
+> - Action = sender-side rate-control abstraction (Fallback Option B). Does NOT directly modify kernel TCP.
+> - delay metric = FlowMonitor delaySum/rxPackets proxy, not direct RTT.
+> - Reward weights (α=1.0, β=0.1, λ=10.0) are provisional; may be revised in Change 05.
 
 ---
 
