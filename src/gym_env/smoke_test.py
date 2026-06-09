@@ -37,7 +37,7 @@ PROJECT_ROOT = SCRIPT_DIR.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from gym_env.ns3_congestion_env import Ns3CongestionEnv, VALID_SCENARIOS, OBS_DIM, N_ACTIONS
+from gym_env.ns3_congestion_env import Ns3CongestionEnv, VALID_SCENARIOS, OBS_DIM, N_ACTIONS, HAS_NS3GYM
 
 LOG_DIR     = PROJECT_ROOT / "experiments" / "drl" / "logs"
 REPORTS_DIR = PROJECT_ROOT / "reports" / "phase4-drl-mvp"
@@ -52,6 +52,10 @@ REQUIRED_INFO_FIELDS = [
     "action_applied",
     "delay_estimate_method",
 ]
+
+# Thresholds for real-ZMQ validation
+MIN_NONZERO_THROUGHPUT_MBPS = 0.1   # At least 1 step must have t > 0.1 Mbps
+MIN_NONZERO_STEPS_FRACTION  = 0.3   # At least 30% of steps must have nonzero t
 
 # ─────────────────────────────────────────────────────────────────────────────
 def validate_obs(obs, step_idx: int, results: list) -> bool:
@@ -91,16 +95,39 @@ def validate_info(info: dict, step_idx: int, results: list) -> bool:
 
 # ─────────────────────────────────────────────────────────────────────────────
 def run_smoke_test(scenario: str, n_steps: int = 20, seed: int = 42,
-                   port: int = 5555, verbose: bool = False) -> dict:
-    """Run smoke test for one scenario. Returns result dict."""
+                   port: int = 5555, verbose: bool = False,
+                   allow_dummy: bool = False) -> dict:
+    """Run smoke test for one scenario. Returns result dict.
+    
+    If allow_dummy=False (default), FAIL if:
+    - ns3gym is not importable (HAS_NS3GYM=False)
+    - ZMQ mode is 'dummy' (env fell back to zero obs)
+    - All throughput values are near-zero (< MIN_NONZERO_THROUGHPUT_MBPS)
+    """
     print(f"\n{'='*60}")
     print(f"  Smoke Test: scenario={scenario} | steps={n_steps} | seed={seed}")
+    print(f"  allow_dummy={allow_dummy} | HAS_NS3GYM={HAS_NS3GYM}")
     print(f"{'='*60}")
 
     results_log   = []
     passed_checks = []
     failed_checks = []
     log_rows      = []
+    zmq_mode      = "unknown"
+
+    # ── 0. Real-ZMQ pre-check ─────────────────────────────────────────────────
+    if not allow_dummy:
+        if not HAS_NS3GYM:
+            failed_checks.append(
+                "HAS_NS3GYM=False and allow_dummy=False: "
+                "ns3gym not importable. Install ns3gym or use --allow-dummy."
+            )
+            return {
+                "scenario": scenario, "passed": False,
+                "passed_checks": passed_checks, "failed_checks": failed_checks,
+                "zmq_mode": "dummy", "has_ns3gym": False,
+            }
+        passed_checks.append(f"HAS_NS3GYM=True")
 
     # ── 1. Environment construction ──────────────────────────────────────────
     try:
@@ -112,6 +139,7 @@ def run_smoke_test(scenario: str, n_steps: int = 20, seed: int = 42,
             seed=seed,
             port=port,
             verbose=verbose,
+            allow_dummy=allow_dummy,  # propagate
         )
         passed_checks.append("env construction")
     except Exception as e:
@@ -137,8 +165,9 @@ def run_smoke_test(scenario: str, n_steps: int = 20, seed: int = 42,
     # ── 4. Reset ─────────────────────────────────────────────────────────────
     try:
         obs, info = env.reset(seed=seed)
+        zmq_mode  = info.get("zmq_mode", "unknown")
         passed_checks.append("reset() succeeds")
-        print(f"  [reset] obs={obs}")
+        print(f"  [reset] obs={obs} | zmq_mode={zmq_mode}")
     except Exception as e:
         failed_checks.append(f"reset() failed: {e}")
         traceback.print_exc()
@@ -146,7 +175,18 @@ def run_smoke_test(scenario: str, n_steps: int = 20, seed: int = 42,
         return {
             "scenario": scenario, "passed": False,
             "passed_checks": passed_checks, "failed_checks": failed_checks,
+            "zmq_mode": zmq_mode, "has_ns3gym": HAS_NS3GYM,
         }
+
+    # Validate ZMQ mode (must be 'real' if allow_dummy=False)
+    if not allow_dummy:
+        if zmq_mode != "real":
+            failed_checks.append(
+                f"ZMQ mode is '{zmq_mode}' but allow_dummy=False. "
+                "Real ZMQ connection required for formal smoke test."
+            )
+        else:
+            passed_checks.append(f"ZMQ mode=real (ns3gym connected)")
 
     # Validate initial observation
     if validate_obs(obs, 0, results_log):
@@ -214,6 +254,25 @@ def run_smoke_test(scenario: str, n_steps: int = 20, seed: int = 42,
     if reward_list:
         passed_checks.append(f"reward finite (min={min(reward_list):.4f} max={max(reward_list):.4f})")
 
+    # ── 6a. Real-ZMQ throughput-nonzero check ────────────────────────────────
+    throughput_values = [r.get("throughput_mbps", 0.0) for r in log_rows]
+    if not allow_dummy and throughput_values:
+        nonzero_count = sum(1 for t in throughput_values if t >= MIN_NONZERO_THROUGHPUT_MBPS)
+        nonzero_frac  = nonzero_count / max(len(throughput_values), 1)
+        if nonzero_frac < MIN_NONZERO_STEPS_FRACTION:
+            failed_checks.append(
+                f"REAL-ZMQ CHECK FAILED: only {nonzero_count}/{len(throughput_values)} steps "
+                f"have throughput >= {MIN_NONZERO_THROUGHPUT_MBPS} Mbps "
+                f"({nonzero_frac:.0%} < {MIN_NONZERO_STEPS_FRACTION:.0%} threshold). "
+                "Likely dummy fallback or broken ZMQ connection."
+            )
+        else:
+            max_t = max(throughput_values)
+            passed_checks.append(
+                f"throughput non-zero ({nonzero_count}/{len(throughput_values)} steps, "
+                f"max={max_t:.2f} Mbps >= {MIN_NONZERO_THROUGHPUT_MBPS} Mbps)"
+            )
+
     env.close()
 
     # ── 6. Write step log CSV ────────────────────────────────────────────────
@@ -230,6 +289,7 @@ def run_smoke_test(scenario: str, n_steps: int = 20, seed: int = 42,
     avg_reward = np.mean(reward_list) if reward_list else 0.0
     print(f"\n  Result: {'PASS' if passed else 'FAIL'}")
     print(f"  Checks passed: {len(passed_checks)} | failed: {len(failed_checks)}")
+    print(f"  ZMQ mode: {zmq_mode} | HAS_NS3GYM: {HAS_NS3GYM}")
     if failed_checks:
         for fc in failed_checks:
             print(f"    FAIL: {fc}")
@@ -243,6 +303,8 @@ def run_smoke_test(scenario: str, n_steps: int = 20, seed: int = 42,
         "avg_reward":     avg_reward,
         "total_reward":   total_reward,
         "log_csv":        str(csv_path) if log_rows else None,
+        "zmq_mode":       zmq_mode,
+        "has_ns3gym":     HAS_NS3GYM,
     }
 
 
@@ -256,8 +318,12 @@ def write_smoke_report(results_s1: dict, results_s2: dict):
         return "✅ PASS" if r.get("passed") else "❌ FAIL"
 
     with open(report_path, "w") as f:
-        f.write("# Phase 4 Smoke Test Report\n\n")
+        f.write("# Phase 4 Smoke Test Report (Real-ZMQ Hardened)\n\n")
         f.write(f"**Generated**: {ts}\n\n")
+        f.write(f"**HAS_NS3GYM**: `{HAS_NS3GYM}`  \n")
+        f.write(f"**S1 ZMQ mode**: `{results_s1.get('zmq_mode', 'unknown')}`  \n")
+        f.write(f"**S2 ZMQ mode**: `{results_s2.get('zmq_mode', 'unknown')}`  \n")
+        f.write(f"**real-ZMQ enforcement**: enabled (allow_dummy=False by default)  \n\n")
         f.write("> Phase 4 Scope: Smoke test only. No DQN training performed.\n\n")
         f.write("---\n\n")
 
@@ -297,7 +363,9 @@ def write_smoke_report(results_s1: dict, results_s2: dict):
         f.write("## Limitations\n\n")
         f.write("- `delay_or_rtt_signal` = FlowMonitor delaySum/rxPackets proxy, NOT direct TCP RTT.\n")
         f.write("- Action is sender-side rate-control abstraction (Fallback Option B per Change 04).\n")
-        f.write("- Smoke test runs with dummy observation if ns3gym not installed; check ns3gym install status.\n")
+        f.write("- **Real-ZMQ enforcement**: dummy fallback obs (all-zero throughput) causes FAIL \n")
+        f.write("  unless `--allow-dummy` flag is explicitly provided.\n")
+        f.write(f"- **HAS_NS3GYM** at test time: `{HAS_NS3GYM}`\n")
 
     print(f"\n  [Report] {report_path}")
     return report_path
@@ -314,7 +382,15 @@ def main():
     parser.add_argument("--port",      type=int, default=5555,
                         help="Base ZMQ port (S2 uses port+1)")
     parser.add_argument("--verbose",   action="store_true")
+    parser.add_argument("--allow-dummy", action="store_true", dest="allow_dummy",
+                        help="[DEBUG ONLY] Allow dummy fallback (zero obs). "
+                             "NEVER use in formal smoke tests or CI. "
+                             "Disables real-ZMQ enforcement.")
     args = parser.parse_args()
+
+    if args.allow_dummy:
+        print("[WARN] --allow-dummy is set. Real-ZMQ enforcement is DISABLED.")
+        print("[WARN] This mode is for debug/unit testing only.")
 
     print("╔══════════════════════════════════════════════════════════╗")
     print("║  Phase 4 Step 3: Random Agent Smoke Test                ║")
@@ -323,17 +399,19 @@ def main():
     print(f"  Steps per scenario: {args.n_steps}")
     print(f"  Seed: {args.seed}")
 
-    results_s1 = {"passed": False, "passed_checks": [], "failed_checks": ["not run"], "n_steps": 0, "avg_reward": 0}
-    results_s2 = {"passed": False, "passed_checks": [], "failed_checks": ["not run"], "n_steps": 0, "avg_reward": 0}
+    results_s1 = {"passed": False, "passed_checks": [], "failed_checks": ["not run"], "n_steps": 0, "avg_reward": 0, "zmq_mode": "not_run"}
+    results_s2 = {"passed": False, "passed_checks": [], "failed_checks": ["not run"], "n_steps": 0, "avg_reward": 0, "zmq_mode": "not_run"}
 
     if "S1" in args.scenarios:
         results_s1 = run_smoke_test("S1", n_steps=args.n_steps,
                                     seed=args.seed, port=args.port,
-                                    verbose=args.verbose)
+                                    verbose=args.verbose,
+                                    allow_dummy=args.allow_dummy)
     if "S2" in args.scenarios:
         results_s2 = run_smoke_test("S2", n_steps=args.n_steps,
                                     seed=args.seed, port=args.port + 1,
-                                    verbose=args.verbose)
+                                    verbose=args.verbose,
+                                    allow_dummy=args.allow_dummy)
 
     report_path = write_smoke_report(results_s1, results_s2)
 

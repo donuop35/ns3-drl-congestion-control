@@ -189,3 +189,69 @@
 - [x] 13.3 Submit Change 04 to Spec Owner for review ✅ **submitted** — commit 2411e57
 - [x] 13.4 Spec Owner approval granted → approved to proceed to Phase 3: Baseline First ✅ **approved** (Spec Owner, 2026-06-08) — all artifacts accepted; Phase 3 authorized
 - [ ] 13.5 /opsx:apply for Change 04 — **Spec Owner approval for Change 04 specification is granted, but /opsx:apply is deferred. ALL changes (/opsx:apply for Change 02, 03, 04) are deferred until Spec Owner explicitly approves per-change. Phase 3 baseline execution is now underway.**
+
+---
+
+## 14. Implementation Status (Phase 4 Execution)
+
+> This section records **implementation execution status**, NOT specification tasks.
+> Specification tasks are in sections 0-13. Updated: 2026-06-09 (Excellent Acceptance upgrade).
+
+### 14.A Environment Setup
+- [x] ns3-gym installed (tkn-tub/ns3-gym, commit cfff7f3)
+- [x] ns3-gym patched for Gymnasium 1.0.0 + NumPy 1.24+ + Protobuf 5.x
+- [x] C++ OpenGym env built (ns3.40-congestion-env-optimized)
+- [x] Python wrapper ns3_congestion_env.py (Gymnasium + ZMQ + subprocess)
+- [x] allow_dummy=False enforcement: dummy fallback raises RuntimeError by default
+
+### 14.B Smoke Test
+- [x] S1 smoke test PASS -- real ZMQ, obs=[0.478, 0.134, 0.0, 0.5, 0.5], reward=0.40-0.61
+- [x] S2 smoke test PASS -- real ZMQ, obs=[0.202, 0.198, 0.0, 0.5, 0.5], reward=0.30-0.56
+- [x] Hardened: throughput-nonzero check (>= 0.1 Mbps in >= 30% steps required)
+- [x] Hardened: zmq_mode=real assertion; --allow-dummy flag for debug-only
+
+### 14.C DQN Training
+- [x] S1 DQN COMPLETE -- 30k steps, seed=42, ep_rew_mean: 62.9->84.4 (+34%), ~18 min CPU
+- [x] S1 checkpoints saved: 6k/12k/18k/24k/30k steps + final model
+- [x] S1 training metadata YAML + Monitor log + ~300 episode CSVs
+- [ ] S2 DQN PENDING -- smoke test gate PASSED; training not yet executed
+
+### 14.D DQN Evaluation
+- [x] S1 eval COMPLETE -- 5 eps, deterministic, seed=42-46
+- [x] S1: Throughput=9.877 Mbps, Delay=115.3 ms (proxy), Loss=0.0040, Utility=0.900
+- [x] S1: Action distribution 100% action 2 (increase) -- near-capacity S1 behavior
+- [x] S1 eval CSV + summary row in dqn_summary.csv
+- [ ] S2 eval PENDING -- depends on S2 training
+
+### 14.E Comparison vs Baseline (S1)
+- [x] DQN vs NewReno S1: DQN utility 0.900 > NewReno 0.875
+- [x] DQN vs CUBIC S1: DQN utility 0.900 > CUBIC 0.884
+- [x] DQN vs BBR S1: DQN utility 0.900 < BBR 0.947 (honest result, not hidden)
+- [x] S1 comparison row in dqn_vs_baseline_summary.csv
+- [ ] S2 comparison -- pending S2 training/eval
+
+### 14.F Figures
+- [x] S1 reward curve: figures/drl/dqn_reward_curve_s1.png
+- [x] S1 action distribution: figures/drl/dqn_action_distribution_s1.png
+- [x] S1 comparison figures (x4): figures/comparison/dqn_vs_baseline_*_s1.png
+- [ ] S2 reward curve / action distribution / comparison figures -- pending
+- [ ] Robustness/seed sensitivity figure -- pending
+
+### 14.G Reports
+- [x] smoke-test-report.md (hardened, ZMQ metadata added)
+- [x] phase4-drl-report.md
+- [x] excellent-acceptance-audit.md
+- [ ] artifact-index.md -- pending
+- [ ] phase4-excellent-acceptance-report.md -- pending
+
+### 14.H Scope Enforcement
+- [x] No PPO, no IPFS/QUIC/multi-agent/multi-path, no fake data
+- [x] DQN vs BBR honestly documented (DQN ranks 2nd on utility)
+- [x] delay proxy clearly disclosed (not true RTT)
+- [x] /opsx:apply deferred until Spec Owner explicit approval per-change
+
+### 14.I Non-Blocking Future Work (Phase 5 / Change 05)
+- [ ] S2 DQN training/eval (in progress via this upgrade)
+- [ ] Repeated-seed robustness study (full multi-training version)
+- [ ] Reward weight ablation (requires Change 05 Spec Owner approval)
+- [ ] Demo video + PPT package (Change 05)

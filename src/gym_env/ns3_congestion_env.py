@@ -112,7 +112,15 @@ class Ns3CongestionEnv(gym.Env):
         lambda_w: float = LAMBDA_W,
         log_dir: Optional[str] = None,
         verbose: bool = False,
+        allow_dummy: bool = False,
     ):
+        """Initialize ns3-gym Congestion Control environment.
+
+        Args:
+            allow_dummy: If False (default), raises RuntimeError if ns3gym is
+                not installed or ZMQ connection fails. Set True ONLY for unit
+                testing without ns-3 installed. Smoke tests must use allow_dummy=False.
+        """
         super().__init__()
 
         assert scenario in VALID_SCENARIOS, \
@@ -128,6 +136,15 @@ class Ns3CongestionEnv(gym.Env):
         self.beta          = beta
         self.lambda_w      = lambda_w
         self.verbose       = verbose
+        self.allow_dummy   = allow_dummy  # False = enforce real ZMQ
+
+        # Fail-fast: if ns3gym is not importable and dummy not allowed, warn loudly
+        if not HAS_NS3GYM and not allow_dummy:
+            raise RuntimeError(
+                "[Ns3CongestionEnv] ns3gym is not importable and allow_dummy=False.\n"
+                "Install ns3gym or use allow_dummy=True for unit testing only.\n"
+                "Real smoke tests and DQN training MUST use real ns3gym."
+            )
 
         # Logging
         if log_dir is None:
@@ -214,8 +231,12 @@ class Ns3CongestionEnv(gym.Env):
                   f"port={self.port} seed={self.seed_val}")
 
         if not HAS_NS3GYM:
+            # allow_dummy was already checked in __init__; if we're here, allow_dummy=True
             obs = np.zeros(OBS_DIM, dtype=np.float32)
+            obs[3] = 0.5  # cwnd_norm placeholder
+            obs[4] = 0.5  # prev_action_norm placeholder
             info = self._make_info(obs, 0)
+            info["zmq_mode"] = "dummy"
             return obs, info
 
         try:
@@ -232,12 +253,22 @@ class Ns3CongestionEnv(gym.Env):
                 debug=self.verbose,
             )
             obs = self._parse_obs(self._ns3env.reset())
+            if self.verbose:
+                print(f"  [reset] ZMQ connected. obs={obs}")
         except Exception as e:
-            print(f"[WARN] ns3env reset failed: {e}")
+            if not self.allow_dummy:
+                self._kill_ns3proc()
+                raise RuntimeError(
+                    f"[Ns3CongestionEnv] ns3env reset failed and allow_dummy=False.\n"
+                    f"Error: {e}\n"
+                    "Check that ns-3 binary exists and ZMQ port is available."
+                ) from e
+            print(f"[WARN] ns3env reset failed (allow_dummy=True): {e}")
             self._kill_ns3proc()
             obs = np.zeros(OBS_DIM, dtype=np.float32)
 
         info = self._make_info(obs, self._prev_action)
+        info["zmq_mode"] = "real" if (self._ns3env is not None) else "dummy"
         return obs, info
 
     # ── step ──────────────────────────────────────────────────────────────────
@@ -251,12 +282,21 @@ class Ns3CongestionEnv(gym.Env):
         self._step_count += 1
 
         if not HAS_NS3GYM or self._ns3env is None:
-            # Dummy step for testing without ns3gym
+            if not self.allow_dummy:
+                raise RuntimeError(
+                    "[Ns3CongestionEnv] Dummy step called with allow_dummy=False.\n"
+                    "ns3env is None — ZMQ connection was not established.\n"
+                    "Ensure ns-3 binary is built and ns3gym is installed."
+                )
+            # Dummy step (allow_dummy=True only)
             obs = np.zeros(OBS_DIM, dtype=np.float32)
+            obs[3] = 0.5  # cwnd_norm placeholder
+            obs[4] = float(action) / (N_ACTIONS - 1)  # prev_action_norm
             reward = 0.0
             terminated = self._step_count >= self.max_steps
             truncated  = False
             info = self._make_info(obs, action)
+            info["zmq_mode"] = "dummy"
             return obs, reward, terminated, truncated, info
 
         try:

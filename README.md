@@ -54,7 +54,7 @@ This project uses **OpenSpec v1.4.1** for Spec-Driven Development.
 
 ```bash
 # Installation verification
-node -v               # v20.11.1
+node -v               # v20.20.2 (Windows, meets OpenSpec ≥ 20.19.0 requirement)
 npm list -g @fission-ai/openspec --depth=0  # @fission-ai/openspec@1.4.1
 openspec --version    # 1.4.1
 
@@ -114,13 +114,18 @@ Progress: 4/4 artifacts complete
 git clone <your-repo-url>
 cd ns3-drl-congestion-control
 
-# 2. Install ns-3 (see docs/ for detailed instructions - TODO: Change 02)
-# 3. Install ns3-gym (see docs/ - TODO: Change 03)
-# 4. Install Python dependencies (TODO: Change 04)
-pip install stable-baselines3 gymnasium numpy pandas matplotlib
-```
+# 2. Install ns-3.40 build dependencies (WSL2)
+bash scripts/phase3/install_deps.sh
+bash scripts/phase3/ns3_download_build.sh
 
-> Full installation instructions will be added in Changes 02 and 03.
+# 3. Install ns3-gym (Phase 4)
+bash scripts/phase4/setup_ns3gym.sh
+bash scripts/phase4/build_opengym.sh
+
+# 4. Install Python dependencies
+pip install -r requirements-phase4.txt
+# or: pip install stable-baselines3 gymnasium torch pyzmq numpy pandas matplotlib
+```
 
 ---
 
@@ -235,14 +240,18 @@ python3 src/analysis/compare_dqn_baseline.py --scenarios S1 S2
 
 ## 📈 Results Summary — Phase 3 Baseline (ns-3.40, seed=42, 60s)
 
-> **Phase 3 baseline completed.** DQN comparison pending Phase 4 — **DRL results NOT available yet.**  
-> All values from `experiments/summaries/baseline_summary.csv`. See `reports/phase3-baseline/` for full report.
+> **Phase 3 baseline completed. Phase 4 DQN S1 comparison also available.**  
+> All baseline values from `experiments/summaries/baseline_summary.csv`.  
+> DQN S1 values from `experiments/drl/summaries/dqn_summary.csv`.  
+> DQN S2 training in progress — results pending.  
+> See `reports/phase3-baseline/` and `reports/phase4-drl-mvp/` for full reports.
 
 ### Scenario S1 — Low Delay Bottleneck (10 Mbps, 10 ms)
 
 | Algorithm | TypeId | Throughput (Mbps) | Avg Delay (ms) | Loss Rate | Utility† |
 |-----------|--------|:-----------------:|:--------------:|:---------:|:--------:|
 | **BBR** | ns3::TcpBbr | **9.73** | **25.89** | 0.000000 | **0.947** |
+| **DQN (ours)** | SB3 DQN | 9.88 | 115.3 ‡ | 0.004040 | **0.900** |
 | CUBIC | ns3::TcpCubic | 9.89 | 117.67 | 0.000504 | 0.884 |
 | NewReno | ns3::TcpLinuxReno | 9.82 | 105.42 | 0.000731 | 0.875 |
 
@@ -253,10 +262,13 @@ python3 src/analysis/compare_dqn_baseline.py --scenarios S1 S2
 | **NewReno** | ns3::TcpLinuxReno | **9.79** | 129.44 | 0.001363 | **0.923** |
 | CUBIC | ns3::TcpCubic | 9.59 | 156.27 | 0.008848 | 0.818 |
 | BBR ⚠️ | ns3::TcpBbr | 0.39 | 148.65 | 0.015816 | -0.169 |
+| **DQN (ours)** | SB3 DQN | *(training)* | *(training)* | *(training)* | *(training)* |
 
-> † Utility score is **provisional** (α=1.0, β=0.1, λ=10.0). Subject to revision in Phase 4.  
+> † Utility score is **provisional** (α=1.0, β=0.1, λ=10.0). Subject to revision in Phase 5.  
 > ⚠️ BBR S2 anomaly: known ns-3.40 TcpBbr limitation in high-RTT scenario. MVP not blocked.  
-> **DQN column intentionally omitted** — DQN has not been trained. Phase 4 will add DQN results.
+> ‡ DQN delay (115ms) uses FlowMonitor delaySum/rxPackets proxy, NOT direct TCP RTT. Elevated due to OpenGym step timing (100 steps × 0.5s interval).  
+> DQN is Fallback Option B (sender-side rate-control). Results are **preliminary MVP**, not a claim of universal superiority.  
+> **S1 DQN complete. S2 DQN training in progress — table will be updated after Excellent Acceptance upgrade.**
 
 ---
 
@@ -266,18 +278,20 @@ python3 src/analysis/compare_dqn_baseline.py --scenarios S1 S2
 |---|-------------|--------|-------------|
 | 01 | `project-charter` | ✅ **APPROVED** | Research direction, MDP definition, charter |
 | 02 | `ns3-baseline-benchmark` | ✅ **SPEC APPROVED** / 🟢 **Phase 3 Executed** | ns-3.40 TCP baselines — pending Spec Owner review |
-| 03 | `opengym-env` | ✅ **SPEC APPROVED** / ⏳ Phase 4 pending | ns3-gym RL environment + random agent smoke test |
-| 04 | `dqn-mvp-agent` | ✅ **SPEC APPROVED** / ⏳ Phase 4 pending | Stable-Baselines3 DQN training + evaluation |
+| 03 | `opengym-env` | ✅ **SPEC APPROVED** / ✅ **Phase 4 Implemented** | ns3-gym RL environment + ZMQ smoke test S1+S2 PASS |
+| 04 | `dqn-mvp-agent` | ✅ **SPEC APPROVED** / 🟡 **Phase 4 In Progress** | S1 DQN: ✅ Complete \| S2 DQN: 🔄 Training |
 | 05 | `reporting-figures-and-demo` | ⏳ PENDING | Final deliverables, PPT assets, demo script |
 
 ---
 
 ## ⚠️ Known Limitations
 
-- ns3-gym compatibility with the latest ns-3 version TBD (Change 02)
-- Direct cwnd control feasibility TBD (Change 03)
-- BBR baseline support depends on ns-3 version (Change 02)
-- DQN may not outperform TCP baselines — honest trade-off analysis will be provided
+- **ns3-gym**: patched for Gymnasium 1.0 + protobuf 5.x + NumPy 1.24+ compatibility
+- **DQN Fallback Option B**: action = sender-side rate-control abstraction, NOT direct kernel TCP cwnd modification
+- **Delay proxy**: FlowMonitor delaySum/rxPackets, NOT direct TCP RTT
+- **DQN S1 result**: 100% increase actions in low-loss scenario — reflects near-capacity S1 environment, not a mature adaptive policy
+- **BBR S2 anomaly**: known ns-3.40 TcpBbr limitation in high-RTT scenario (documented in Phase 3)
+- **S2 DQN**: training in progress; results pending Excellent Acceptance upgrade
 
 ---
 
@@ -305,8 +319,12 @@ ns3-drl-congestion-control/
 ├── src/
 │   ├── ns3/
 │   │   └── baseline-benchmark.cc  # ✅ Phase 3: ns-3.40 simulation
-│   ├── gym_env/                 # ⏳ Phase 4: ns3-gym environment
-│   └── agents/                  # ⏳ Phase 4: DQN agent
+│   ├── gym_env/                 # ✅ Phase 4: ns3-gym Gymnasium wrapper
+│   │   ├── ns3_congestion_env.py  # ✅ Gymnasium env (ZMQ + subprocess)
+│   │   └── smoke_test.py        # ✅ Real-ZMQ smoke test S1+S2 PASS
+│   └── agents/                  # ✅ Phase 4: DQN agent
+│       ├── train_dqn.py         # ✅ S1 done / S2 in progress
+│       └── eval_dqn.py          # ✅ S1 done / S2 pending
 ├── scripts/
 │   └── phase3/
 │       ├── install_deps.sh      # ✅ Step A: build dependency installer
