@@ -97,7 +97,7 @@ Progress: 4/4 artifacts complete
 | Metrics | FlowMonitor | delaySum/rxPackets as delay proxy |
 | **RL Interface** | **ns3-gym** | **✅ Installed** (tkn-tub/ns3-gym, commit cfff7f3) |
 | **RL Framework** | **Stable-Baselines3** | **✅ v2.4.1** (Phase 4) |
-| **RL Algorithm** | **DQN (SB3)** | **✅ Trained S1** (30k steps, ep_rew_mean=84.4, seed=42) |
+| **RL Algorithm** | **DQN (SB3)** | **✅ Trained S1+S2** (30k steps each, S1 ep_rew_mean=84.4 / S2 ep_rew_mean=86.5, seed=42) |
 | **PyTorch** | torch | **2.4.1+cu121** (CPU mode for training) |
 | **Gymnasium** | gymnasium | **1.0.0** |
 | Analysis | Python 3.8+ | numpy, matplotlib |
@@ -324,8 +324,8 @@ ns3-drl-congestion-control/
 │   │   ├── ns3_congestion_env.py  # ✅ Gymnasium env (ZMQ + subprocess)
 │   │   └── smoke_test.py        # ✅ Real-ZMQ smoke test S1+S2 PASS
 │   └── agents/                  # ✅ Phase 4: DQN agent
-│       ├── train_dqn.py         # ✅ S1 done / S2 in progress
-│       └── eval_dqn.py          # ✅ S1 done / S2 pending
+│       ├── train_dqn.py         # ✅ S1+S2 complete
+│       └── eval_dqn.py          # ✅ S1+S2 complete
 ├── scripts/
 │   └── phase3/
 │       ├── install_deps.sh      # ✅ Step A: build dependency installer

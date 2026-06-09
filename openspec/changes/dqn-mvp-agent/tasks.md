@@ -212,46 +212,54 @@
 
 ### 14.C DQN Training
 - [x] S1 DQN COMPLETE -- 30k steps, seed=42, ep_rew_mean: 62.9->84.4 (+34%), ~18 min CPU
-- [x] S1 checkpoints saved: 6k/12k/18k/24k/30k steps + final model
-- [x] S1 training metadata YAML + Monitor log + ~300 episode CSVs
-- [ ] S2 DQN PENDING -- smoke test gate PASSED; training not yet executed
+- [x] S2 DQN COMPLETE -- 30k steps, seed=42, ep_rew_mean: 55.0->86.5 (+57%), ~18.9 min CPU (1134.9s)
+- [x] S1/S2 checkpoints saved: 6k/12k/18k/24k/30k steps + final models
+- [x] S1/S2 training metadata YAMLs + Monitor logs + episode CSVs available
 
 ### 14.D DQN Evaluation
-- [x] S1 eval COMPLETE -- 5 eps, deterministic, seed=42-46
-- [x] S1: Throughput=9.877 Mbps, Delay=115.3 ms (proxy), Loss=0.0040, Utility=0.900
-- [x] S1: Action distribution 100% action 2 (increase) -- near-capacity S1 behavior
-- [x] S1 eval CSV + summary row in dqn_summary.csv
-- [ ] S2 eval PENDING -- depends on S2 training
+- [x] S1 eval COMPLETE -- 5 eps, deterministic, seeds 42-46
+- [x] S2 eval COMPLETE -- 5 eps, deterministic, seeds 42-46
+- [x] S1: Throughput=9.877 Mbps, Delay=115.3 ms proxy, Loss=0.0040, Utility=0.900
+- [x] S2: Throughput=9.786 Mbps, Delay=148.8 ms proxy, Loss=0.0554, Utility=0.757
+- [x] S1 eval CSV: experiments/drl/evaluations/dqn_eval_s1.csv
+- [x] S2 eval CSV: experiments/drl/evaluations/dqn_eval_s2.csv
+- [x] dqn_summary.csv complete: S1 + S2 rows
 
-### 14.E Comparison vs Baseline (S1)
+### 14.E Comparison vs Baseline
 - [x] DQN vs NewReno S1: DQN utility 0.900 > NewReno 0.875
 - [x] DQN vs CUBIC S1: DQN utility 0.900 > CUBIC 0.884
 - [x] DQN vs BBR S1: DQN utility 0.900 < BBR 0.947 (honest result, not hidden)
-- [x] S1 comparison row in dqn_vs_baseline_summary.csv
-- [ ] S2 comparison -- pending S2 training/eval
+- [x] S1 comparison complete -- row in dqn_vs_baseline_summary.csv
+- [x] DQN vs NewReno S2: DQN utility 0.757 < NewReno 0.923 (honest result)
+- [x] DQN vs CUBIC S2: DQN utility 0.757 < CUBIC 0.818 (honest result)
+- [x] DQN vs BBR S2: DQN utility 0.757 >> BBR -0.169 (BBR S2 anomaly documented)
+- [x] S2 comparison complete -- rows in dqn_vs_baseline_summary.csv
+- [x] Honest result documented: DQN ranks 2nd S1, 3rd S2 due to high loss
 
 ### 14.F Figures
 - [x] S1 reward curve: figures/drl/dqn_reward_curve_s1.png
+- [x] S2 reward curve: figures/drl/dqn_reward_curve_s2.png
 - [x] S1 action distribution: figures/drl/dqn_action_distribution_s1.png
+- [x] S2 action distribution: figures/drl/dqn_action_distribution_s2.png
 - [x] S1 comparison figures (x4): figures/comparison/dqn_vs_baseline_*_s1.png
-- [ ] S2 reward curve / action distribution / comparison figures -- pending
-- [ ] Robustness/seed sensitivity figure -- pending
+- [x] S2 comparison figures (x4): figures/comparison/dqn_vs_baseline_*_s2.png
+- [x] Seed sensitivity figure: figures/drl/dqn_seed_sensitivity.png
 
 ### 14.G Reports
-- [x] smoke-test-report.md (hardened, ZMQ metadata added)
-- [x] phase4-drl-report.md
-- [x] excellent-acceptance-audit.md
-- [ ] artifact-index.md -- pending
-- [ ] phase4-excellent-acceptance-report.md -- pending
+- [x] smoke-test-report.md -- updated with real-ZMQ hardened status, HAS_NS3GYM=True
+- [x] phase4-drl-report.md -- S1+S2 results
+- [x] excellent-acceptance-audit.md -- complete
+- [x] artifact-index.md -- updated and synchronized (Phase 4 Excellent Acceptance Complete)
+- [x] phase4-excellent-acceptance-report.md -- finalized with S2 results and Phase 5 GO
 
 ### 14.H Scope Enforcement
 - [x] No PPO, no IPFS/QUIC/multi-agent/multi-path, no fake data
-- [x] DQN vs BBR honestly documented (DQN ranks 2nd on utility)
+- [x] DQN vs BBR honestly documented (DQN ranks 2nd S1, 3rd S2 on utility)
 - [x] delay proxy clearly disclosed (not true RTT)
 - [x] /opsx:apply deferred until Spec Owner explicit approval per-change
 
 ### 14.I Non-Blocking Future Work (Phase 5 / Change 05)
-- [ ] S2 DQN training/eval (in progress via this upgrade)
-- [ ] Repeated-seed robustness study (full multi-training version)
+- [ ] Full multi-seed retraining study
 - [ ] Reward weight ablation (requires Change 05 Spec Owner approval)
-- [ ] Demo video + PPT package (Change 05)
+- [ ] PPO / continuous-action extension
+- [ ] Demo video + PPT package in Phase 5 / Change 05
