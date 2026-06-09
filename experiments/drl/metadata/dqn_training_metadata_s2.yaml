@@ -1,0 +1,22 @@
+algorithm: DQN
+hyperparameters:
+  batch_size: 64
+  buffer_size: 10000
+  gamma: 0.99
+  learning_rate: 0.0001
+log_file: experiments/drl/logs/dqn_train_s2_seed42.monitor.csv
+model_path: experiments/drl/models/dqn_s2_seed42.zip
+phase: Phase 4 Excellent Acceptance
+policy: MlpPolicy
+reward_weights:
+  alpha: 1.0
+  beta: 0.1
+  lambda: 10.0
+  note: Provisional per Change 03/04
+sb3_version: 2.4.1
+scenario: S2
+seed: 42
+total_timesteps: 30000
+training_duration_s: 1134.890172
+training_end: '2026-06-09T05:16:49.059821+00:00'
+training_start: '2026-06-09T04:57:54.169649+00:00'

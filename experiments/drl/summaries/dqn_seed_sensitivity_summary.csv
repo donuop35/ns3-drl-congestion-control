@@ -1,0 +1,7 @@
+scenario_id,method,eval_seed,n_eval_episodes,mean_throughput_mbps,std_throughput_mbps,mean_delay_ms,mean_loss_rate,mean_utility_score,std_utility_score,notes
+S1,DQN,42,3,9.877090909090908,0.0,115.25018570707071,0.004040393939393939,0.8998852055435153,0.0,eval-only seed sensitivity; not a full retraining study
+S1,DQN,43,3,9.877090909090908,0.0,115.25018570707071,0.004040393939393939,0.8998852055435153,0.0,eval-only seed sensitivity; not a full retraining study
+S1,DQN,44,3,9.877090909090908,0.0,115.25018570707071,0.004040393939393939,0.8998852055435153,0.0,eval-only seed sensitivity; not a full retraining study
+S2,DQN,42,3,9.786424242424243,0.0,148.81609929292927,0.05537046464646465,0.7573970273889676,0.0,eval-only seed sensitivity; not a full retraining study
+S2,DQN,43,3,9.786424242424243,0.0,148.81609929292927,0.05537046464646465,0.7573970273889676,0.0,eval-only seed sensitivity; not a full retraining study
+S2,DQN,44,3,9.786424242424243,0.0,148.81609929292927,0.05537046464646465,0.7573970273889676,0.0,eval-only seed sensitivity; not a full retraining study

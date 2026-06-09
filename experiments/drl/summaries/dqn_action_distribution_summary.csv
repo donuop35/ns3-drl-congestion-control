@@ -1,0 +1,3 @@
+scenario_id,method,eval_seed,n_eval_episodes,action_0_decrease_pct,action_1_keep_pct,action_2_increase_pct,dominant_action,notes
+S1,DQN,42,5,0.0,0.0,1.0,increase,delay_estimate_method:delaySum_per_packet; action=sender-side-rate-control
+S2,DQN,42,5,0.13131313131313133,0.0,0.8686868686868687,increase,delay_estimate_method:delaySum_per_packet; action=sender-side-rate-control
