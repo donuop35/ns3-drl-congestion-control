@@ -3,10 +3,22 @@
 > **以深度強化學習進行單一瓶頸鏈路壅塞控制與吞吐量最佳化**  
 > **Deep Reinforcement Learning for Congestion Control and Throughput Optimization over a Single Bottleneck Link**
 >
-> **專案狀態:** 🟢 *Phase 4: DRL MVP Implementation — ✅ Excellent Acceptance Complete (2026-06-09) | Pending Spec Owner Review*  
-> **DQN 訓練狀態:** ✅ S1 Complete (30k steps, ep_rew_mean=84.4) | ✅ S2 Complete (30k steps, ep_rew_mean=86.5) | Eval+Compare done | Pending Phase 5 approval
+> **專案狀態:** 🟢 *Phase 5: Final Package Complete (2026-06-10) | Pending Spec Owner Final Review*  
+> **DQN 訓練狀態:** ✅ S1 Complete (30k steps, ep_rew_mean=84.4) | ✅ S2 Complete (30k steps, ep_rew_mean=86.5) | Eval+Compare done | Phase 5 Complete
 
-> 🎥 **Demo Video**: TODO — 正式 demo video 將在 Change 05 完成後補上。
+> 🎙️ **Demo Script**: ✅ Available — [Demo Script](demo/demo-script.md) & [Demo Checklist](demo/demo-checklist.md)
+
+---
+
+## 🏆 Final Package Deliverables
+
+- 📄 **[Final Report](reports/final/final-report.md)**
+- 📊 **[Final Figures Directory](figures/final/)**
+- 🎙️ **[Demo Script](demo/demo-script.md)**
+- 📽️ **[Slides Outline](slides/final/final-presentation-outline.md)** & **[Speaker Notes](slides/final/speaker-notes.md)**
+- 📦 **[Final Artifact Manifest](reports/final/final-artifact-manifest.md)**
+- 🔄 **[Reproducibility Guide](reports/final/final-reproducibility-guide.md)**
+- ✅ **[Submission Checklist](reports/final/final-submission-checklist.md)**
 
 ---
 
@@ -229,11 +241,14 @@ python3 src/analysis/compare_dqn_baseline.py --scenarios S1 S2
 
 ## 📊 How to Reproduce Figures
 
-> **Status**: ⏳ TODO — will be implemented in Change 05 (reporting-figures-and-demo)
+> **Status**: ✅ Completed — final figures generation script implemented
 
 ```bash
-# Generate all comparison figures
-# python src/analysis/plot_comparison.py --results experiments/results/
+# Generate all final figures from CSV (Source of Truth)
+python scripts/phase5/generate_final_figures.py
+
+# Figures will be output to:
+#   figures/final/
 ```
 
 ---
@@ -280,7 +295,7 @@ python3 src/analysis/compare_dqn_baseline.py --scenarios S1 S2
 | 02 | `ns3-baseline-benchmark` | ✅ **SPEC APPROVED** / 🟢 **Phase 3 Executed** | ns-3.40 TCP baselines — pending Spec Owner review |
 | 03 | `opengym-env` | ✅ **SPEC APPROVED** / ✅ **Phase 4 Implemented** | ns3-gym RL environment + ZMQ smoke test S1+S2 PASS |
 | 04 | `dqn-mvp-agent` | ✅ **SPEC APPROVED** / ✅ **Phase 4 Complete** | S1+S2 DQN: ✅ Trained+Eval+Compare | Excellent Acceptance ✅ |
-| 05 | `reporting-figures-and-demo` | ⏳ PENDING | Final deliverables, PPT assets, demo script |
+| 05 | `reporting-figures-and-demo` | ✅ **SPEC APPROVED** / 🟢 **Phase 5 Executed** | Final deliverables, PPT assets, demo script |
 
 ---
 
@@ -348,6 +363,7 @@ ns3-drl-congestion-control/
 │   ├── comparison/             # ✅ 8 DQN vs baseline figures (S1+S2 ×4)
 │   └── drl/                    # ✅ Reward curves S1+S2, action dist S1+S2, seed sensitivity
 ├── reports/
+│   ├── final/                   # ✅ Phase 5 final deliverables
 │   ├── phase3-baseline/
 │   │   └── phase3-baseline-report.md  # ✅ Phase 3 baseline report
 │   └── phase4-drl-mvp/
@@ -355,8 +371,9 @@ ns3-drl-congestion-control/
 │       ├── phase4-drl-report.md       # ✅ S1+S2 DQN results
 │       ├── artifact-index.md          # ✅ Complete artifact directory
 │       └── phase4-excellent-acceptance-report.md  # ✅ Excellent Acceptance
+├── demo/                        # ✅ Phase 5 demo scripts
+├── slides/                      # ✅ Phase 5 PPT assets
 ├── docs/                        # Background docs
-├── slides/                      # PPT assets
 ├── proposal/                    # Original proposal documents
 └── pdr/                         # PDR documents
 ```
