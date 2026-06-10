@@ -17,4 +17,4 @@
 | 可重現性 | Reproducibility Guide + Figure Generation Script | `reports/final/final-reproducibility-guide.md`, `scripts/phase5/generate_final_figures.py` | 提供快速驗證與完整重現路線 |
 | 限制與未來工作 | Limitations Table + Future Work | `reports/final/final-report.md`, `reports/final/final-claims-guardrail.md` | 誠實揭露 Delay Proxy / Option B / S2 高丟包 |
 | Demo / 影片 | Demo Script + Runbook + Checklist | `demo/demo-script.md`, `demo/final-demo-runbook.md` | 10 分鐘，含 fallback plan |
-| PPO / 進階演算法 | Out of scope by design | N/A | Phase 6 已由 Spec Owner 決定跳過；PPO 列為 future work |
+| PPO / 進階演算法 | Phase 6 Conditional PPO Extension Decision Record | `reports/final/phase6-extension-decision.md` | DQN MVP 成功後才考慮 PPO；本學期不實作；PPO / continuous action 列為 future work |

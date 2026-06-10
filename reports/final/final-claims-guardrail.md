@@ -15,4 +15,6 @@
 | 可重現性 | 提供 source-of-truth artifacts 與重現指令 | 100% 保證可重現 / 絕無造假 | `final-reproducibility-guide.md` |
 | OpenSpec SDD | 採用 OpenSpec 規格驅動開發治理研究過程 | OpenSpec 保證研究正確性 | `openspec/` |
 | 未來工作 | PPO + 連續動作空間為自然延伸；Phase 6 已由 Spec Owner 跳過 | PPO will definitely solve all problems | N/A |
+| Phase 6 / PPO 擴展 | Phase 6 是 deferred conditional extension；PPO / continuous action 是 future work，可能改善 DQN 粗粒度動作限制 | PPO will reverse the result / PPO beats TCP / PPO was implemented / PPO results show... | `reports/final/phase6-extension-decision.md` |
+| PPO / Continuous Action | PPO 支援 Box continuous action（SB3 官方確認）；可能改善 S1 退化策略與 S2 高丟包 | Continuous action solves the problem / PPO outperforms DQN | `phase6-extension-decision.md` |
 | 部署狀態 | 本專題為 MVP prototype，運行於模擬環境 | Production-ready TCP / real Internet deployment | 整份專案 |

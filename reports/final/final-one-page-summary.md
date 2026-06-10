@@ -48,4 +48,4 @@ DQN Utility **0.757**，排名第 3。低於 NewReno（0.923）與 CUBIC（0.818
 
 ## 結語
 
-本 MVP 驗證了 DRL 在單一瓶頸鏈路擁塞控制的可行性，並為未來連續動作空間（PPO）研究奠定了基礎。
+本 MVP 驗證了 DRL 在單一瓶頸鏈路擁塞控制的可行性，並為未來連續動作空間（PPO）研究奠定了基礎。Phase 6 已正式補回為「Conditional PPO / Extension Decision Record」：因 DQN Discrete(3) 動作空間造成 S1 退化策略與 S2 高丟包，PPO 搭配 continuous action 是合理的 future work 方向。但本學期不實作 PPO，不宣稱 PPO 一定改善結果。詳見 `reports/final/phase6-extension-decision.md`。

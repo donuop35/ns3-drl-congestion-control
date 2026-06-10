@@ -37,3 +37,10 @@
 - [x] **No Stale TODO**: 無殘留未完成標記。
 - [x] **No Overclaim in Phase 7 Docs**: 新文件無過度宣稱。
 - [x] **No Data Drift**: 新文件數字與 CSV 一致。
+
+## 4. Phase 6 Conditional Extension
+- [x] **Phase 6 Extension Decision**: `phase6-extension-decision.md` 已建立。
+- [x] **PPO / Continuous Action Positioned as Future Work**: 明確標示為 future work。
+- [x] **No PPO Implementation Claimed**: 沒有宣稱 PPO 已實作。
+- [x] **No Fake PPO Results**: 沒有虛構 PPO 實驗數據。
+- [x] **Phase 6 Integrated**: 已嵌入 final report / README / SUBMISSION / slides / claims guardrail / grading matrix。

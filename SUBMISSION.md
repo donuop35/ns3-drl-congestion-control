@@ -31,6 +31,7 @@
 | 評分對齊矩陣 | `reports/final/grading-alignment-matrix.md` | ✅ |
 | 老師閱讀導覽 | `reports/final/teacher-navigation-map.md` | ✅ |
 | Claims Guardrail | `reports/final/final-claims-guardrail.md` | ✅ |
+| Phase 6 Extension Decision | `reports/final/phase6-extension-decision.md` | ✅ |
 
 ## 5. 核心結果摘要
 
@@ -49,7 +50,7 @@ DQN Utility 0.757，排名第 3。DQN 丟包率 5.54%，暴露了粗粒度離散
 - Utility 權重為 provisional。
 - DQN 未全面勝過 TCP baselines。
 - BBR S2 anomaly 為 ns-3.40 已知限制。
-- Phase 6（PPO）已由 Spec Owner 決定跳過，PPO 為 future work。
+- Phase 6 已補回為 Conditional PPO Extension Decision Record：因 DQN Discrete(3) 動作限制，PPO / continuous action 是合理 future work，但本學期不實作，不影響 final result claims。
 
 ## 7. 如何重現圖表
 
@@ -70,6 +71,7 @@ python3 scripts/phase5/generate_final_figures.py
 - 不宣稱 production-ready。
 - 不宣稱取代真實網路的 TCP 實作。
 - 不宣稱 delay proxy 等同 true TCP RTT。
+- 不宣稱 PPO 已實作或 PPO 一定反轉結果。
 
 ## 10. 建議評分路線
 

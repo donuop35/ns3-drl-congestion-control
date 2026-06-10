@@ -42,7 +42,7 @@ S1 中 DQN 100% 選擇 Increase——這是退化策略，不是複雜的 adapti
 所有圖表都可以從凍結的 CSV 重新產生：`python3 scripts/phase5/generate_final_figures.py`。我們不會 live 重訓 30,000 steps。
 
 ## 結論與未來工作（8:45–9:30）
-本 MVP 驗證了 DRL 在單一瓶頸鏈路擁塞控制的可行性。未來可嘗試 PPO 搭配連續動作空間。Phase 6 已由 Spec Owner 決定跳過，PPO 為 future work。
+本 MVP 驗證了 DRL 在單一瓶頸鏈路擁塞控制的可行性。DQN MVP 成功後，我們正式補回了 Phase 6 作為條件式擴展決策：因為 DQN 的 Discrete(3) 動作空間造成 S1 退化策略和 S2 高丟包，PPO 搭配連續動作空間是合理的改進方向。但本學期不實作 PPO，避免 scope creep。PPO 不保證一定反轉結果——它是 future work，不是已完成的實驗。
 
 ## 結尾（9:30–10:00）
 感謝聆聽。所有的成果都在 GitHub repo 中，歡迎檢視。

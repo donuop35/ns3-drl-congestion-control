@@ -324,13 +324,26 @@ python scripts/phase5/generate_final_figures.py
 
 ---
 
+## 📋 Phase 6: Conditional PPO / Extension Decision
+
+> DQN MVP 成功後，Phase 6 補回為條件式擴展決策。PPO / continuous action 是 future work，本學期不實作。
+
+DQN 的 Discrete(3) 動作空間造成 S1 退化策略（100% Increase）與 S2 高丟包（5.54%）。PPO 支援 continuous Box action（SB3 官方確認），可能改善粗粒度動作限制。但 PPO 不保證反轉結果，本學期不實作以避免 scope creep。
+
+📄 **[Phase 6 Extension Decision Record →](reports/final/phase6-extension-decision.md)**
+
+---
+
 ## 🔮 Future Work
 
-- PPO with continuous action space for finer-grained rate control
+- PPO with continuous action space for finer-grained rate control（Phase 6 Extension）
+- Reward ablation study（調整 loss penalty λ 抑制 S2 高丟包）
 - Multi-flow scenarios (Jain's fairness index analysis)
 - Generalization across different network scenarios
 - IPFS / decentralized network motivation (not in this semester's scope)
 - QUIC congestion control adaptation (not in this semester's scope)
+
+> ⚠️ 上述均為 future work。本學期不實作 PPO，不宣稱 PPO 一定勝過 DQN 或 TCP baselines。
 
 ---
 

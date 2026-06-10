@@ -68,12 +68,31 @@
 | **BBR S2 Anomaly** | ns-3.40 TcpBbr 表現異常 | 列入表格附註為已知問題，MVP 不受阻礙。 |
 | **No Real-World Deployment** | 環境僅在模擬器中運行 | 明確宣告不追求 production-ready。 |
 
-## Future Work and Skipped Phase 6
-本專題的下一步自然延伸為：
-- 使用 PPO 演算法搭配連續動作空間（Continuous Action Space），以達成更精細的發送速率控制。
-- 探索更多樣化、多資料流（Multi-flow）的網路拓撲場景。
+## Conditional Phase 6: PPO / Extension Decision
 
-**Phase 6 說明**：為了確保最終交付（Phase 5）的品質與專注度，並避免擴充題目帶來的時程風險，Spec Owner 已決定**本期末專題跳過 Phase 6**（不實作 PPO）。因此，PPO 與進階擴展僅列為 Future Work，而非本專題的未完成缺口。
+Phase 6 原始設計為「條件式擴展階段」：只有 DQN MVP 成功完成後，才考慮 PPO / continuous action 擴展。
+
+**DQN MVP 門檻已達成。** Phase 4 完成了 S1/S2 兩場景的 DQN 訓練、評估與比較。然而，實驗結果顯示 DQN 的 Discrete(3) 動作空間是主要限制因素：
+
+- **S1 degenerate policy**：DQN 100% 選擇 Increase，因為離散動作空間沒有「Increase by 5%」的精細選項，Agent 只能選擇全力提速。
+- **S2 high loss**：DQN 丟包率 5.54%，粗粒度動作使 Agent 傾向暴力提速容忍丟包，而非精細調控速率。
+- **DQN 未全面勝過 TCP**：S1 排名第 2（低於 BBR），S2 排名第 3（低於 NewReno / CUBIC）。
+
+**PPO / continuous action 是技術上合理的改進方向。** SB3 官方文件明確指出 DQN 僅支援 Discrete action，而 PPO 同時支援 Discrete 與 Box（continuous）action space。continuous action 可表達更精細的 sending-rate adjustment，可能改善上述限制。PPO 的 actor-critic 架構透過 clipping 限制 policy update，可能更適合 rate-control 問題。
+
+**但本學期不實作 PPO。** 原因包含：(1) DQN MVP 已達到期末專題要求；(2) PPO 需要重新設計 ns3-gym action mapping；(3) 避免在期末最後階段草率加入另一套演算法導致 scope creep。Phase 6 已由 Spec Owner 正式決定跳過，作為 deferred future work。
+
+**PPO 不保證反轉結果。** 即使使用 continuous action，PPO 仍面臨 exploration space 增大、reward design 挑戰與 environment fidelity 限制。所有 final results 仍基於 DQN MVP。
+
+> 詳見：[`reports/final/phase6-extension-decision.md`](phase6-extension-decision.md)
+
+## Future Work
+
+基於 Phase 6 Extension Decision，本專題的下一步自然延伸為：
+- 使用 PPO 演算法搭配連續動作空間（Continuous Action Space），以達成更精細的發送速率控制。
+- 進行 reward ablation study：調整 loss penalty（λ）以抑制 S2 高丟包行為。
+- 探索更多樣化、多資料流（Multi-flow）的網路拓撲場景。
+- 上述方向均為 future work，本學期不實作，不宣稱 PPO 一定勝過 DQN 或 TCP baselines。
 
 ## Conclusion
 本專題成功建立了可重現的單一瓶頸鏈路 DRL 擁塞控制 MVP prototype。我們驗證了：
