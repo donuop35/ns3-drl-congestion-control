@@ -13,7 +13,9 @@ When the developer updates the README
 Then it must include the required final sections and remove stale content.
 
 ## 1. Overview
-The final README must contain:
+The final README must contain the following required sections:
+
+## 2. Final Sections Required
 1. **Project Overview:** High-level summary of the thesis.
 2. **Phase Status:** Must explicitly state "Phase 5 Final Package Complete".
 3. **OpenSpec SDD Proof:** Retain proof of governance.

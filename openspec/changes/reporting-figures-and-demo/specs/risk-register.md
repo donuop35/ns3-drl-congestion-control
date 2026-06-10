@@ -13,6 +13,7 @@ When potential failure modes are analyzed
 Then the following 14 risks must be tracked and mitigated.
 
 ## Change 05 Risk Register
+| Risk ID | Description | Likelihood | Impact | Mitigation Strategy | Contingency Plan | Owner | Trigger |
 |---------|-------------|-------------|--------|------------|----------|-------|-------------------|
 | R-05-01 | README, report, and PPT results are mismatched. | Medium | High | Define result interpretation rules and centralize data source to Phase 4 CSVs. | Correct the inconsistent document to match the CSV source of truth. | Developer | Reviewer notices differing utility scores across docs. |
 | R-05-02 | Figures are inconsistent with CSV data. | Low | High | Enforce programmatic generation of figures from CSVs. | Regenerate figures using analysis scripts. | Developer | Visual inspection shows chart bars not matching CSV values. |

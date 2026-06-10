@@ -5,7 +5,8 @@
 ## ADDED Requirements
 
 ### Req 1: Define PPT Package
-The presentation must be timed for a 10-minute presentation and contain exactly 10-12 slides.
+- The presentation must contain exactly 10-12 slides.
+- It must be timed for a 10-minute presentation.
 
 #### Scenario: Creating the slide deck
 Given the finalized figures and project constraints

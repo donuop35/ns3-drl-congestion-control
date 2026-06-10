@@ -13,6 +13,9 @@ When the results are described in deliverables
 Then the interpretation must follow the S1 and S2 rules.
 
 ## 1. Core Principle
+Results must be interpreted accurately without overclaiming adaptiveness or performance.
+
+## 2. S1 Interpretation (Low Delay, 10ms)
 - **Observations:** DQN achieves near-maximum throughput (9.88 Mbps). Its utility (0.900) ranks 2nd overall.
 - **Comparisons:** DQN beats CUBIC (0.884) and NewReno (0.875) on utility. DQN does **not** beat BBR (0.947).
 - **Behavior:** The agent learned a degenerate policy (100% "increase" actions).
