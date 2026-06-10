@@ -20,3 +20,20 @@
 - [x] **No Retraining**: 沒有浪費時間重訓已經達標的 DQN 模型。
 - [x] **No Phase 3 / 4 Result Drift**: 圖表產出之數字與 Phase 3/4 結果完全吻合。
 - [x] **Accurate Nomenclature**: 已標示 "Delay Proxy" 與 "Sender-side rate abstraction"。
+
+## 3. Phase 7 High-Score Packaging
+- [x] **SUBMISSION.md**: 快速入口指南完成。
+- [x] **Grading Alignment Matrix**: 評分項目對齊矩陣完成。
+- [x] **One-Page Summary**: 一頁式摘要完成。
+- [x] **Teacher Navigation Map**: 5/15/30 分鐘三條路線完成。
+- [x] **Claims Guardrail**: 主張界線指引完成。
+- [x] **10-min Talk Track**: 口頭報告講稿完成。
+- [x] **Presentation Checklist**: 簡報 Pre-Flight Checklist 完成。
+- [x] **Demo Runbook**: 展演流程完成。
+- [x] **Demo Recording Checklist**: 錄影 Checklist 完成。
+- [x] **Demo Fallback Plan**: 應急方案完成。
+- [x] **README Landing Page**: 加入 SUBMISSION.md 入口與老師導覽。
+- [x] **All Links Checked**: 所有新增文件路徑已確認。
+- [x] **No Stale TODO**: 無殘留未完成標記。
+- [x] **No Overclaim in Phase 7 Docs**: 新文件無過度宣稱。
+- [x] **No Data Drift**: 新文件數字與 CSV 一致。

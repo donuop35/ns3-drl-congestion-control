@@ -3,10 +3,23 @@
 > **以深度強化學習進行單一瓶頸鏈路壅塞控制與吞吐量最佳化**  
 > **Deep Reinforcement Learning for Congestion Control and Throughput Optimization over a Single Bottleneck Link**
 >
-> **專案狀態:** 🟢 *Phase 5: Final Package Complete (2026-06-10) | Pending Spec Owner Final Review*  
+> **專案狀態:** 🟢 *Phase 7: High-Score Final Deliverable Packaging Complete (2026-06-10)*  
 > **DQN 訓練狀態:** ✅ S1 Complete (30k steps, ep_rew_mean=84.4) | ✅ S2 Complete (30k steps, ep_rew_mean=86.5) | Eval+Compare done | Phase 5 Complete
 
+> 📋 **[快速入口：SUBMISSION.md →](SUBMISSION.md)** — 老師/助教請先看這份文件，1–2 分鐘掌握全貌  
 > 🎙️ **Demo Script**: ✅ Available — [Demo Script](demo/demo-script.md) & [Demo Checklist](demo/demo-checklist.md)
+
+---
+
+## 🧭 老師快速導覽
+
+| 閱讀時間 | 路線 | 建議文件 |
+|----------|------|----------|
+| **5 分鐘** | 快速驗收 | [`SUBMISSION.md`](SUBMISSION.md) → [`final-one-page-summary.md`](reports/final/final-one-page-summary.md) → [`key_findings_summary.png`](figures/final/key_findings_summary.png) |
+| **15 分鐘** | 標準驗收 | README → [`final-report.md`](reports/final/final-report.md) → [`figures/final/`](figures/final/) → [`grading-alignment-matrix.md`](reports/final/grading-alignment-matrix.md) |
+| **30+ 分鐘** | 深度驗收 | 上述 + OpenSpec changes + Phase 3/4 reports + CSV source data |
+
+> 📖 詳細閱讀路線請見 [`teacher-navigation-map.md`](reports/final/teacher-navigation-map.md)
 
 ---
 
