@@ -34,17 +34,25 @@
 ## 6. Figure Artifacts
 | Artifact | Path | Exists | Phase Source | Purpose | Used in Report | Used in Slides | Used in Demo | Caveat |
 |----------|------|--------|--------------|---------|----------------|----------------|--------------|--------|
-| Generate Script | `scripts/phase5/generate_final_figures.py` | Yes | Phase 5 | High-score figure generator | No | No | No | Do not manually edit figures |
+| Generate Script | `scripts/phase5/generate_final_figures.py` | Yes | Phase 5 | High-score figure generator | No | No | No | Fail-fast on missing CSV |
+| Validate Script | `scripts/phase5/validate_final_figures.py` | Yes | Phase 5 | Figure QA checker | No | No | No | Checks size + dimensions |
 | Figure Source Map | `reports/final/final-figure-source-map.md` | Yes | Phase 5 | Figure to CSV mapping | Yes | No | No | N/A |
+| Baseline Utility | `figures/final/baseline_utility_summary.png` | Yes | Phase 5 | S1/S2 baseline grouped bar | Yes | Yes | No | BBR S2 anomaly annotated |
 | Utility S1/S2 | `figures/final/dqn_vs_baseline_utility_s1_s2.png` | Yes | Phase 5 | Compare overall utility | Yes | Yes | Yes | Generated from CSV |
-| Loss S1/S2 | `figures/final/dqn_vs_baseline_loss_s1_s2.png` | Yes | Phase 5 | Highlight S2 limitation | Yes | Yes | Yes | Exposes 5.54% loss |
-| Action Dist | `figures/final/dqn_action_distribution_s1_s2.png` | Yes | Phase 5 | S1 degenerate policy | Yes | Yes | No | Generated from CSV |
+| Loss S1/S2 | `figures/final/dqn_vs_baseline_loss_s1_s2.png` | Yes | Phase 5 | Highlight S2 limitation | Yes | Yes | Yes | DQN S2 loss 5.54% |
+| Action Dist | `figures/final/dqn_action_distribution_s1_s2.png` | Yes | Phase 5 | S1 degenerate policy | Yes | Yes | No | Percentage scale 0-100 |
+| System Pipeline | `figures/final/system_pipeline.png` | Yes | Phase 5 | Architecture flow diagram | Yes | Yes | No | Conceptual |
+| Bottleneck Topology | `figures/final/single_bottleneck_topology.png` | Yes | Phase 5 | Network topology | Yes | Yes | No | Conceptual |
+| MDP Formulation | `figures/final/mdp_formulation.png` | Yes | Phase 5 | MDP loop diagram | Yes | Yes | No | Conceptual |
+| Key Findings | `figures/final/key_findings_summary.png` | Yes | Phase 5 | 4-card insight summary | Yes | Yes | No | Conceptual |
+| Reward Curves | `figures/final/dqn_reward_curves_s1_s2.png` | Yes | Phase 5 | Training diagnostic | No | Yes | No | Not final performance |
 
 ## 7. Report Artifacts
 | Artifact | Path | Exists | Phase Source | Purpose | Used in Report | Used in Slides | Used in Demo | Caveat |
 |----------|------|--------|--------------|---------|----------------|----------------|--------------|--------|
 | Final Report | `reports/final/final-report.md` | Yes | Phase 5 | Complete academic summary | Yes | No | Yes | Honest limitations |
 | High-Score Report | `reports/final/phase5-high-score-acceptance-report.md` | Yes | Phase 5 | Acceptance validation proof | No | No | No | N/A |
+| Figures QA Report | `reports/final/final-figures-qa-report.md` | Yes | Phase 5 | Figure QA audit trail | No | No | No | N/A |
 
 ## 8. Demo Artifacts
 | Artifact | Path | Exists | Phase Source | Purpose | Used in Report | Used in Slides | Used in Demo | Caveat |

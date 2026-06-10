@@ -92,6 +92,19 @@
 - [x] 10.8 Validate Change 05 after high-score cleanup
 - [ ] 10.9 Wait for Spec Owner high-score-ready acceptance review
 
+## 11. Final Figures QA / Regeneration Hotfix
+
+- [x] 11.1 Audit all Gemini-generated Phase 5 deliverables
+- [x] 11.2 Fix scenario ID mismatch causing empty utility/loss figures
+- [x] 11.3 Regenerate DQN vs baseline utility/loss figures
+- [x] 11.4 Improve baseline utility grouped bar chart
+- [x] 11.5 Convert action distribution to percentage scale
+- [x] 11.6 Upgrade conceptual diagrams for report/slides
+- [x] 11.7 Add final figure validation script
+- [x] 11.8 Update figure source map and report references
+- [x] 11.9 Validate OpenSpec after figure QA
+- [ ] 11.10 Wait for Spec Owner final figures QA review
+
 ---
 
 ## Change 05 Review Checklist (For Spec Owner)
