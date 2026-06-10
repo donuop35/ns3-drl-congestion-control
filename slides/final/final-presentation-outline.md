@@ -66,7 +66,7 @@
 - **Main Message:** 成功訓練 DQN 30k steps 且通過 Smoke Test。
 - **Key Bullets:**
   - 訓練過程穩定。
-  - 代理有在學習如何獲取 Reward。
+  - Training reward is diagnostic, not final performance。
 - **Suggested Visual:** `figures/final/dqn_reward_curves_s1_s2.png`
 - **Data Source:** `dqn_training logs`
 - **Speaker Note Summary:** 這張圖展示了 DQN 訓練過程中的 Reward 變化...
@@ -103,7 +103,7 @@
 - **Forbidden Wording:** "True RTT", "kernel-level congestion control."
 
 ## Slide 11: Demo / Reproducibility
-- **Main Message:** 所有成果 100% 可重現，受 OpenSpec 治理。
+- **Main Message:** 專案受到 OpenSpec 治理，主要結果可追溯。
 - **Key Bullets:**
   - Provide Reproducibility Guide.
   - Figure generation scripts provided.
@@ -116,6 +116,7 @@
 - **Key Bullets:**
   - Feasibility proven.
   - Future Work: PPO, Continuous Action Spaces.
+  - Phase 6 skipped by Spec Owner; PPO is future work only.
 - **Suggested Visual:** 無
 - **Data Source:** N/A
 - **Speaker Note Summary:** 結論是本 MVP 證明了可行性，未來可以嘗試 PPO...

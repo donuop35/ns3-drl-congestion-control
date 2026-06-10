@@ -80,6 +80,18 @@
 - [x] 9.5 Run `openspec validate reporting-figures-and-demo --strict`
 - [ ] 9.6 Stop and wait for Spec Owner review
 
+## 10. Phase 5 High-score-ready Acceptance
+
+- [x] 10.1 Fix final artifact manifest paths
+- [x] 10.2 Fix final reproducibility guide commands
+- [x] 10.3 Remove overclaiming reproducibility wording
+- [x] 10.4 Strengthen final report with tables and source mapping
+- [x] 10.5 Improve final figure script and figure quality
+- [x] 10.6 Add final figure source map
+- [x] 10.7 Align README, demo, slides, and report wording
+- [x] 10.8 Validate Change 05 after high-score cleanup
+- [ ] 10.9 Wait for Spec Owner high-score-ready acceptance review
+
 ---
 
 ## Change 05 Review Checklist (For Spec Owner)

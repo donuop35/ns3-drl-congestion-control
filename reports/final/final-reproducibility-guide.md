@@ -1,50 +1,62 @@
 # Final Reproducibility Guide
 
-本專案所有的程式碼與實驗結果皆為 100% 可重現（100% Reproducible），且受到 `@fission-ai/openspec` 工作流的嚴格把關。
+本專案提供完整 source-of-truth artifacts、OpenSpec 規格紀錄與重現指令，以支撐主要結果與圖表的可追溯性。
 
-## 1. 系統先決條件 (System Prerequisites)
-- 作業系統：Ubuntu 22.04 LTS 或 WSL2
+## 1. Scope of Reproducibility
+在相容工具鏈環境下，主要結果與 final figures 可由既有 CSV / scripts 重新產生。本指南分為「快速驗證路線」與「完整實驗重現路線」。
+
+## 2. Environment Assumptions
+- 作業系統：Ubuntu 20.04/22.04 LTS 或 WSL2
 - 網路模擬器：`ns-3.40`
-- Python 環境：`Python 3.10+`
+- Python 環境：`Python 3.8+`
 - 套件：`ns3-gym`, `stable-baselines3`, `pandas`, `matplotlib`, `pyzmq`
 - OpenSpec：`Node.js 20.19+`, `@fission-ai/openspec@1.4.1`
 
-## 2. 規格驗證 (OpenSpec Validation)
-執行此指令以確保專案變更符合規格：
-```bash
-openspec validate reporting-figures-and-demo --strict
-```
-*(預期：Pass，確保所有檔案皆有遵守定義的規則)*
+## 3. Source-of-Truth Artifacts
+主要結果與圖表皆追溯至以下不可修改之 CSV 檔案：
+- `experiments/summaries/baseline_summary.csv`
+- `experiments/drl/summaries/dqn_vs_baseline_summary.csv`
+- `experiments/drl/summaries/dqn_action_distribution_summary.csv`
 
-## 3. 重跑 Baseline 實驗 (Baseline Reproduction)
-執行所有傳統 TCP (NewReno, CUBIC, BBR) 的測試：
+## 4. Fast Verification Path (Recommended for Review)
+此路線僅依賴既有 source-of-truth CSV，重新產生報告所需的圖表：
 ```bash
-python scripts/run_baseline.py
+python3 scripts/phase5/generate_final_figures.py
 ```
-*(注意：此步驟較耗時，通常不需要在 Demo 時執行。既有的 CSV 已為 Source of Truth。)*
+*(圖表將輸出至 `figures/final/`。此指令執行速度快，不會重新跑 ns-3 模擬。)*
 
-## 4. 執行 DRL 冒煙測試 (Smoke Test)
-確認 ns3-gym ZMQ 連線與環境運作正常：
+## 5. Optional Full Baseline Reproduction
+此路線為耗時實驗，將重新執行 Phase 3 的所有傳統 TCP (NewReno, CUBIC, BBR) 模擬：
 ```bash
-python src/drl_agent/smoke_test.py
+# 需在 WSL2 環境下執行
+bash scripts/phase3/baseline_runner.sh
+python3 scripts/phase3/analysis.py
 ```
-*(預期：不報錯，且在幾秒內印出 step reward 與 episode completion 訊息)*
 
-## 5. 評估已訓練的 DQN 模型 (DQN Evaluation)
-讀取 Phase 4 預先訓練好的模型（存放於 `experiments/drl/models/`）並進行評估：
+## 6. Optional DQN Evaluation Reproduction
+此路線評估 Phase 4 預先訓練好之模型（`dqn_s1_seed42.zip` 與 `dqn_s2_seed42.zip`），以驗證 DRL agent 的效能：
 ```bash
-python src/drl_agent/evaluate_dqn.py --seed 42
+# S1 評估
+bash scripts/phase4/eval_dqn.sh experiments/drl/models/dqn_s1_seed42.zip S1
+# S2 評估
+bash scripts/phase4/eval_dqn.sh experiments/drl/models/dqn_s2_seed42.zip S2
 ```
-*(注意：不建議在 Demo 時 Live 重訓 DQN 30,000 步。直接使用提供的 Evaluate 腳本即可確認模型表現。)*
 
-## 6. 生成最終圖表 (Final Figure Generation)
-使用既有的 CSV (Source of Truth) 重新產生報告與簡報中使用的所有圖片：
+## 7. Final Figure Regeneration
+若您想重新生成 Final figures，請執行：
 ```bash
-python scripts/phase5/generate_final_figures.py
+python3 scripts/phase5/generate_final_figures.py
 ```
-*(預期：圖片會更新到 `figures/final/` 目錄內。)*
 
----
-**核心原則：**
-- 所有的 CSV (`experiments/summaries/baseline_summary.csv` 等) 是絕對的數據來源，請勿手動竄改。
-- Demo 中不需要從零開始跑完整個 RL 訓練迴圈，這會超過 10 分鐘的展示限制。
+## 8. Commands Not Recommended for Live Demo
+展演時，時間通常受限於 10 分鐘，因此**不建議** live 執行以下指令：
+- `bash scripts/phase4/train_dqn.sh` (重訓 30,000 steps 會大幅超時)
+- `bash scripts/phase3/baseline_runner.sh` (重新模擬所有 baseline 耗時)
+
+## 9. Known Environment Caveats
+- `ns-3` 必須編譯成功且位於上層目錄（相對於 `scripts/`）。
+- `ns3-gym` 必須安裝正確的 pyzmq 版本。
+- BBR 在高延遲 S2 場景的 anomaly 屬於 ns-3.40 已知現象，並記錄於報告中。
+
+## 10. No-Manual-Editing Rule
+主要 final figures 由既有 CSV 與 scripts 重新產生，避免手動改數字。請勿手動修改 `figures/final/` 內的圖片內容。

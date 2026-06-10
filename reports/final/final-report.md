@@ -1,80 +1,82 @@
 # Final Report：DRL-Based Congestion Control over a Bottleneck Link
 
-## Abstract
-本專題探討在單一瓶頸鏈路（Single Bottleneck Link）上，應用深度強化學習（Deep Reinforcement Learning, DRL）進行擁塞控制（Congestion Control）之可行性。透過整合 ns-3 網路模擬器與 Stable-Baselines3（SB3）的 DQN 演算法，我們建立了可重現的強化學習擁塞控制測試平台。實驗涵蓋低延遲（S1, 10ms）與高延遲（S2, 50ms）場景，並與傳統 TCP 變體（NewReno, CUBIC, BBR）進行比較。結果顯示，DQN 能在 S1 中學到近乎滿載（near-capacity）的退化策略（degenerate policy），在 utility 上排名第二；但在 S2 中則暴露出高丟包率（5.54%）的限制。本報告忠實呈現 DRL MVP 的潛力與限制。
+## Executive Summary
+本專題探討在單一瓶頸鏈路（Single Bottleneck Link）上，應用深度強化學習（DRL, 具體為 DQN）進行擁塞控制（Congestion Control）之可行性。透過整合 `ns-3.40` 網路模擬器與 `Stable-Baselines3`，我們建立了一個受 OpenSpec 嚴格治理的重現環境。主要結果顯示，DQN 在低延遲（S1, 10ms）場景下可學到近乎滿載（near-capacity）的退化策略，獲得僅次於 BBR 的第二名效用表現（0.900）；但在高延遲（S2, 50ms）場景中，DQN 暴露出容忍高丟包（5.54%）以換取吞吐量的限制。本報告忠實呈現 MVP 的潛力與限制，**不宣稱** DQN 全面打敗 TCP。
 
-## 1. Introduction / Motivation
-傳統 TCP（如 NewReno, CUBIC）依賴人工設計的啟發式規則（hand-crafted rules）來因應網路擁塞，通常難以在吞吐量（throughput）、延遲（delay）與丟包率（loss）之間達到完美平衡。隨著 DRL 在複雜決策問題上展現潛力，探索 DRL 是否能自動學習出適應性強的擁塞控制策略，成為近年網路研究的熱點。
+## Contribution Summary
+本研究之主要貢獻包含：
+- 建立並驗證了受 OpenSpec 治理的 DRL 網路擁塞控制測試平台。
+- 完成 ns-3 單一瓶頸鏈路的傳統 TCP (NewReno, CUBIC, BBR) 效能 benchmark。
+- 成功實作 ns3-gym DQN MVP。
+- 提供完整且可追溯的 final reproducibility package。
+- 誠實報告與揭露 RL 在高延遲與簡單獎勵約束下之行為與限制（Honest limitation reporting）。
 
-## 2. Problem Statement
-在點對點的單一瓶頸網路中，發送端需決定封包發送速率，以最大化整體網路效用（Utility）。然而，發送端僅能觀察到延遲與丟包，無法得知瓶頸鏈路的真實狀態。本專題旨在驗證：一個基於 DQN 的 agent 是否能從這些受限觀察中，學會超越或持平傳統 TCP 的控制策略。
+## OpenSpec SDD Methodology
+為了確保研究過程的嚴謹與不可竄改性，本專題導入了 OpenSpec 規格驅動開發（Spec-Driven Development）。
+- Phase 0 至 Phase 5 的每一步變更，皆由 `openspec` CLI 工具所產生的 `proposal`, `specs`, `design`, `tasks` 進行治理。
+- 所有的 source-of-truth artifacts (如 CSV) 一旦凍結後即禁止手動竄改，避免「挑櫻桃」(cherry-picking) 數據。這保障了實驗結論的客觀可信度。
 
-## 3. Background and Related Concepts
-- **Congestion Control (CC):** 控制網路進入流量，避免路由器佇列溢滿。
-- **Reinforcement Learning (RL):** 代理（Agent）透過與環境（Environment）互動，根據獎勵（Reward）最佳化長期決策。
-- **DQN:** 結合深度神經網路與 Q-Learning 的演算法，適用於離散動作空間。
+## Experiment Source Mapping
+本報告內的所有數據皆來自不可修改的實驗記錄：
+- Baseline results 來自：`experiments/summaries/baseline_summary.csv`
+- DQN results 來自：`experiments/drl/summaries/dqn_summary.csv`
+- DQN 與 Baseline 比較數據來自：`experiments/drl/summaries/dqn_vs_baseline_summary.csv`
+- Final figures 皆由 `scripts/phase5/generate_final_figures.py` 讀取上述 CSV 動態產生，絕無手動繪圖或改數字。
 
-## 4. System Scope and Non-Goals
-本專題為 Minimum Viable Product (MVP)，範圍嚴格限制於：
-- **Scope:** 單一瓶頸鏈路（Single Bottleneck Topology），單一發送者對單一接收者。
-- **Non-Goals:** 不涉及多代理（multi-agent）、多路徑（multi-path）、真實網際網路部署。不包含 IPFS 或 QUIC 實作。這**不是**一個 production-ready 的 TCP 方案。
+## Results
 
-## 5. System Design
-本專題的工具鏈架構（Toolchain）整合如下：
-- **環境（Environment）:** `ns-3.40` 負責網路模擬。
-- **通訊橋樑:** `ns3-gym` 透過 ZMQ 提供 OpenAI Gym 介面。
-- **代理（Agent）:** `Stable-Baselines3` 提供 DQN 演算法。
-（參考：`figures/final/system_pipeline.png`）
+### S1 Result Table (Low Delay Bottleneck: 10 Mbps, 10 ms)
+| Scenario | Method | Throughput (Mbps) | Delay Proxy (ms) | Loss Rate | Utility | Rank | Notes |
+|----------|--------|-------------------|------------------|-----------|---------|------|-------|
+| S1 | BBR | 9.73 | 25.9 | 0.000000 | 0.947 | 1 | Best overall |
+| S1 | DQN (ours) | 9.88 | 115.3 | 0.004040 | 0.900 | 2 | Degenerate policy (100% Increase) |
+| S1 | CUBIC | 9.89 | 117.7 | 0.000504 | 0.884 | 3 | High throughput, moderate delay |
+| S1 | NewReno | 9.82 | 105.4 | 0.000731 | 0.875 | 4 | |
 
-## 6. MDP Formulation
-我們將擁塞控制問題建模為馬可夫決策過程（MDP）：
-- **State (Observation):** 包含吞吐量、Delay Proxy（FlowMonitor delaySum/rxPackets）、丟包率、Cwnd 狀態與重傳次數。
-- **Action:** 離散的三個動作：減少（Decrease）、維持（Keep）、增加（Increase）。（註：此為發送端的 rate-control 抽象化，稱為 Fallback Option B，並非直接修改 Linux kernel 的 cwnd）。
-- **Reward:** 結合吞吐量、延遲與丟包的組合函數：`Reward = (α * Throughput) - (β * Delay) - (λ * Loss)`。本專題使用的 provisional utility 權重為 α=1.0, β=0.1, λ=10.0。
-（參考：`figures/final/mdp_formulation.png`）
+### S2 Result Table (High Delay Bottleneck: 10 Mbps, 50 ms)
+| Scenario | Method | Throughput (Mbps) | Delay Proxy (ms) | Loss Rate | Utility | Rank | Notes |
+|----------|--------|-------------------|------------------|-----------|---------|------|-------|
+| S2 | NewReno | 9.79 | 129.4 | 0.001363 | 0.923 | 1 | Best overall in S2 |
+| S2 | CUBIC | 9.59 | 156.3 | 0.008848 | 0.818 | 2 | |
+| S2 | DQN (ours) | 9.79 | 148.8 | 0.055440 | 0.757 | 3 | High loss rate limitation |
+| S2 | BBR | 0.39 | 148.7 | 0.015816 | -0.169 | 4 | ns-3.40 TcpBbr anomaly |
 
-## 7. Baseline Benchmark
-在 Phase 3，我們建立 Baseline，評估 NewReno、CUBIC 與 BBR 在 S1（10ms）與 S2（50ms）的表現。
-- 這些數據來自 `experiments/summaries/baseline_summary.csv`。
-（參考：`figures/final/baseline_utility_summary.png`）
+*(註：Utility 權重為 provisional：α=1.0, β=0.1, λ=10.0。Delay Proxy 源自 FlowMonitor)*
 
-## 8. DRL MVP Implementation
-Phase 4 中，我們成功將 DQN 與 ns-3 介接，並進行了 30,000 steps 的訓練。
-- 透過 Real-ZMQ smoke test 驗證。
-- 模型與日誌保存於 `experiments/drl/models/` 與 `logs/`。
-（參考：`figures/final/dqn_reward_curves_s1_s2.png`）
+## Figure Reference Table
+| Figure | Path | Source Data | Used For | Caveat |
+|--------|------|-------------|----------|--------|
+| System Pipeline | `figures/final/system_pipeline.png` | Conceptual | 說明工具鏈 | |
+| Single Bottleneck | `figures/final/single_bottleneck_topology.png` | Conceptual | 說明網路拓撲 | |
+| MDP Formulation | `figures/final/mdp_formulation.png` | Conceptual | 定義 RL State/Action/Reward | |
+| Baseline Utility | `figures/final/baseline_utility_summary.png` | `baseline_summary.csv` | Phase 3 TCP 效能 | |
+| DQN vs Baseline Utility | `figures/final/dqn_vs_baseline_utility_s1_s2.png` | `dqn_vs_baseline_summary.csv` | 呈現整體效用比較 | |
+| DQN vs Baseline Loss | `figures/final/dqn_vs_baseline_loss_s1_s2.png` | `dqn_vs_baseline_summary.csv` | 凸顯 S2 DQN 高丟包率 | |
+| DQN Action Dist. | `figures/final/dqn_action_distribution_s1_s2.png` | `dqn_action_distribution_summary.csv` | S1 degenerate policy 洞察 | |
+| DQN Reward Curves | `figures/final/dqn_reward_curves_s1_s2.png` | Log merging | DQN 訓練過程穩定性 | Training reward != performance |
+| Key Findings | `figures/final/key_findings_summary.png` | Conceptual | 結論與發現總結 | |
 
-## 9. Results
+## Limitations Table
+| Limitation | Impact | How This Report Handles It |
+|------------|--------|----------------------------|
+| **Delay Proxy** | 未能直接反映 TCP kernel RTT | 於報告與圖表中明確標示為 "Delay Proxy" (由 FlowMonitor 計算)，不稱其為 true RTT。 |
+| **Fallback Option B** | Action 只是 Sender-side 應用層速率控制 | 清楚聲明本 MVP 為 rate abstraction，非 kernel-level TCP control。 |
+| **Discrete Action Space** | 動作受限於 +, -, =，控制粒度粗 | 承認這是造成 S2 丟包的部分原因，並將連續動作列入未來工作。 |
+| **S1 Degenerate Policy** | DQN 在低延遲只學到單一策略 | 誠實揭露 DQN 發現暴力解，並未過度解讀其「智慧」。 |
+| **S2 High Loss** | 代理選擇容忍丟包以追求吞吐量 | 圖表 (`dqn_vs_baseline_loss`) 與內文明確指出 5.54% 的高丟包率，不避諱排名第三。 |
+| **Provisional Utility** | 權重 (1, 0.1, 10) 影響總分 | 備註權重之隨機性，不宣稱 DQN 在絕對意義上勝過 TCP。 |
+| **BBR S2 Anomaly** | ns-3.40 TcpBbr 表現異常 | 列入表格附註為已知問題，MVP 不受阻礙。 |
+| **No Real-World Deployment** | 環境僅在模擬器中運行 | 明確宣告不追求 production-ready。 |
 
-### 9.1 Scenario S1：Low Delay
-- **表現:** DQN 達到極高的吞吐量（9.88 Mbps），Provisional Utility 為 0.900，整體排名第 2。
-- **比較:** DQN 效用高於 CUBIC（0.884）與 NewReno（0.875），但低於 BBR（0.947）。
-- **策略:** 代理學習到了 degenerate policy（100% Increase），在低延遲、近滿載的 benign 環境下，這是一個局部最佳解。
+## Future Work and Skipped Phase 6
+本專題的下一步自然延伸為：
+- 使用 PPO 演算法搭配連續動作空間（Continuous Action Space），以達成更精細的發送速率控制。
+- 探索更多樣化、多資料流（Multi-flow）的網路拓撲場景。
 
-### 9.2 Scenario S2：High Delay
-- **表現:** DQN 維持了不錯的吞吐量，但付出了高昂的丟包代價（Loss Rate: 5.54%）。Provisional Utility 為 0.757，整體排名第 3。
-- **比較:** DQN 效用低於 NewReno（0.923）與 CUBIC（0.818），僅高於遭遇高延遲異常（anomaly）的 BBR（0.316）。
+**Phase 6 說明**：為了確保最終交付（Phase 5）的品質與專注度，並避免擴充題目帶來的時程風險，Spec Owner 已決定**本期末專題跳過 Phase 6**（不實作 PPO）。因此，PPO 與進階擴展僅列為 Future Work，而非本專題的未完成缺口。
 
-### 9.3 Summary Across Scenarios
-DQN 在簡單場景下能快速壓榨頻寬，但在高延遲場景下，目前 MVP 的離散動作空間與簡單 reward 設計難以應付佇列管理（queue management），導致明顯的丟包懲罰。
-（參考：`figures/final/dqn_vs_baseline_utility_s1_s2.png` 及 `figures/final/dqn_action_distribution_s1_s2.png`）
-
-## 10. Discussion
-本專題成功驗證了「使用 DRL 進行 ns-3 網路模擬擁塞控制」的基礎可行性（Feasibility）。DQN 在 S1 中發現了發送端的最佳暴力解，這符合我們對 RL 在簡單約束下行為的預期。然而，S2 的高丟包率提醒我們，RL 容易「鑽漏洞」：為了拿到吞吐量獎勵，它選擇容忍丟包懲罰。
-
-## 11. Limitations
-必須誠實揭露以下系統限制：
-- **Delay Proxy:** 本專題的 Delay 來自 FlowMonitor 統計，是 Proxy 而非 true TCP RTT。
-- **Action Abstraction:** 動作為 Fallback Option B（發送端 application-level rate control），並非真實的 kernel-level TCP control。
-- **Loss Behavior:** S2 中的高丟包率（5.54%）顯示目前代理缺乏細緻的預測能力。
-- **Not Production Ready:** 本專題並未宣稱 DQN beats TCP，這僅為學術原型的 MVP。
-
-## 12. Reproducibility
-所有產出皆符合 OpenSpec SDD 規範。
-我們提供 `reports/final/final-reproducibility-guide.md`，說明如何使用指令重現從 baseline、smoke test 到 DQN 評估與圖表生成的所有步驟，且所有結果均以 CSV 作為 Source of Truth。
-
-## 13. Conclusion
-本專題成功建立了基於 ns-3、ns3-gym 與 SB3 的單一瓶頸鏈路 DRL 擁塞控制測試平台。DQN MVP 在低延遲場景下展現出逼近極限吞吐量的潛力，同時也誠實揭露了其在高延遲下因離散動作與簡單獎勵造成的限制。這為未來導入更進階的演算法（如 PPO）與連續動作空間奠定了堅實基礎。
-
-## 14. Appendix：Artifact Index
-請參閱 `reports/final/final-artifact-manifest.md`，其中羅列了本專題所有的程式碼、數據、圖表與文件產出清單。
+## Conclusion
+本專題成功建立了可重現的單一瓶頸鏈路 DRL 擁塞控制 MVP prototype。我們驗證了：
+1. DQN 在低延遲（S1）環境下，可發掘出壓榨頻寬極限的暴力策略，表現出不俗的吞吐量與效用（排名第二）。
+2. 在高延遲（S2）環境下，因粗粒度的離散動作控制，代理傾向容忍丟包，曝露了 MVP 的限制。
+本研究的最終貢獻在於，建構了一套嚴謹可驗證的測試環境（prototype），並示範了基於 OpenSpec 治理的客觀評估（evaluation discipline）與誠實的限制揭露（honest limitations），為未來的連續控制研究奠定了堅實的基礎。

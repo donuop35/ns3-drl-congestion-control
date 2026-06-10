@@ -7,7 +7,7 @@
 - **講稿:** 大家好，今天我要展示的專題是「以深度強化學習進行單一瓶頸鏈路擁塞控制」。我們探討的是，傳統 TCP（如 NewReno, CUBIC）依賴人工設計的規則，如果改用 DRL，Agent 能不能自己學會在吞吐量、延遲、與丟包之間取得平衡？我們做了一個 MVP。
 
 ## 0:45–1:45 OpenSpec SDD workflow 與 repo 結構
-- **講稿:** 為了確保研究的嚴謹度，我們採用 OpenSpec 規格驅動開發（SDD）。所有實驗與變更都是由 `@fission-ai/openspec` 治理，保證 100% 可重現且沒有造假。
+- **講稿:** 為了確保研究的嚴謹度，我們採用 OpenSpec 規格驅動開發（SDD）。所有實驗與變更都是由 `@fission-ai/openspec` 治理。我們提供 source-of-truth artifacts 與重現流程，確保主要結果與圖表的可追溯性。
 - **操作:** 秀出 repo 目錄結構，打開 `openspec/changes/`，展示 `Change 05` 裡面的 `specs/` 檔案。
 
 ## 1:45–2:45 Phase 3 baseline artifacts
@@ -30,8 +30,8 @@
 - **講稿:** 我們必須誠實面對限制。首先，我們的動作是 Sender-side 的速率控制抽象化（Fallback Option B），不是直接改 Linux kernel 的 cwnd。其次，我們的延遲指標是 FlowMonitor 算出來的 Delay Proxy，不是 true TCP RTT。最後，DQN 並沒有全面打敗 TCP，這也不是 production-ready 的方案，而是一個證明「可行性」的雛形。
 
 ## 6:45–7:45 Reproducibility commands
-- **講稿:** 這個專案最大的價值之一是「可重現性」。我們提供了一份完整的 Reproducibility Guide。
-- **操作:** 在 terminal 執行 `python3 scripts/phase5/generate_final_figures.py`，證明所有的圖表都可以一鍵從 CSV 重新產生，絕無手動修圖。
+- **講稿:** 這個專案極度重視可重現性。我們提供了一份完整的 Reproducibility Guide，包含快速驗證與完整實驗重現的路線。為了節省時間，我們不會 live 重新訓練 30,000 steps。
+- **操作:** 在 terminal 執行 `python3 scripts/phase5/generate_final_figures.py`，證明主要的圖表都可以從既有 CSV (Source of Truth) 重新產生，避免手動改數字。
 
 ## 7:45–8:45 Final report / figures / slides locations
 - **講稿:** 所有的書面報告、最終圖表與投影片大綱，都妥善存放在 `reports/final/`, `figures/final/`, 與 `slides/final/`。我們也有一份 Artifact Manifest 來索引所有檔案。
