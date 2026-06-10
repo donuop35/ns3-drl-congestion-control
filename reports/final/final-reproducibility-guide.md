@@ -37,9 +37,9 @@ python3 scripts/phase3/analysis.py
 此路線評估 Phase 4 預先訓練好之模型（`dqn_s1_seed42.zip` 與 `dqn_s2_seed42.zip`），以驗證 DRL agent 的效能：
 ```bash
 # S1 評估
-bash scripts/phase4/eval_dqn.sh experiments/drl/models/dqn_s1_seed42.zip S1
+python3 src/agents/eval_dqn.py --model experiments/drl/models/dqn_s1_seed42.zip --scenario S1 --seed 42
 # S2 評估
-bash scripts/phase4/eval_dqn.sh experiments/drl/models/dqn_s2_seed42.zip S2
+python3 src/agents/eval_dqn.py --model experiments/drl/models/dqn_s2_seed42.zip --scenario S2 --seed 42
 ```
 
 ## 7. Final Figure Regeneration
