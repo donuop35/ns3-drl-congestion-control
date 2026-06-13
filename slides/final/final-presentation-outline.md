@@ -4,8 +4,9 @@
 **預計時間:** 10 分鐘
 
 ## Slide 1: Title
+
 - **Main Message:** Deep Reinforcement Learning for Congestion Control over a Single Bottleneck Link.
-- **Key Bullets:** 
+- **Key Bullets:**
   - 探討 DRL 應用於單一瓶頸鏈路擁塞控制之可行性。
   - MVP 實作與 Baseline 比較。
 - **Suggested Visual:** `figures/final/single_bottleneck_topology.png`
@@ -14,6 +15,7 @@
 - **Forbidden Wording:** "production-ready TCP", "universal solution".
 
 ## Slide 2: Motivation
+
 - **Main Message:** 傳統 TCP 使用人工啟發式規則，DRL 提供潛在的自適應平衡方案。
 - **Key Bullets:**
   - 傳統 TCP 難以完美平衡 Throughput, Delay, 與 Loss。
@@ -23,6 +25,7 @@
 - **Speaker Note Summary:** 為什麼我們要做這個題目？傳統 TCP...
 
 ## Slide 3: Research Question & Scope
+
 - **Main Message:** 範圍限制在單一瓶頸鏈路與 DQN MVP，並與 NewReno, CUBIC, BBR 進行比較。
 - **Key Bullets:**
   - Scope: Single bottleneck link.
@@ -34,6 +37,7 @@
 - **Forbidden Wording:** IPFS, QUIC, multi-agent, multi-path.
 
 ## Slide 4: System Architecture
+
 - **Main Message:** 結合 ns-3.40, ns3-gym, 與 Stable-Baselines3 的工具鏈。
 - **Key Bullets:**
   - Environment: ns-3.40.
@@ -44,6 +48,7 @@
 - **Speaker Note Summary:** 我們的系統架構包含三個核心組件...
 
 ## Slide 5: MDP Formulation
+
 - **Main Message:** 定義 State, Action, 與 Reward。
 - **Key Bullets:**
   - State (5 metrics): Throughput, Delay Proxy, Loss Rate, Cwnd, Rtx.
@@ -54,6 +59,7 @@
 - **Speaker Note Summary:** 我們將問題建模為 MDP，特別注意動作是 Sender-side 的抽象化...
 
 ## Slide 6: Baseline Benchmark
+
 - **Main Message:** Phase 3 Baseline 確立了 S1 與 S2 的效能基準。
 - **Key Bullets:**
   - S1 (10ms): BBR 表現最佳。
@@ -63,6 +69,7 @@
 - **Speaker Note Summary:** 比較前，我們先看傳統 TCP 的基準線...
 
 ## Slide 7: DRL MVP Implementation
+
 - **Main Message:** 成功訓練 DQN 30k steps 且通過 Smoke Test。
 - **Key Bullets:**
   - 訓練過程穩定。
@@ -72,6 +79,7 @@
 - **Speaker Note Summary:** 這張圖展示了 DQN 訓練過程中的 Reward 變化...
 
 ## Slide 8: Main Results — S1
+
 - **Main Message:** 在低延遲環境中，DQN 效用排名第 2，學習到滿載退化策略。
 - **Key Bullets:**
   - Utility: 0.900 (2nd place).
@@ -82,6 +90,7 @@
 - **Forbidden Wording:** "DQN beats TCP."
 
 ## Slide 9: Main Results — S2
+
 - **Main Message:** 在高延遲環境中，DQN 盲目追求吞吐量導致高丟包率。
 - **Key Bullets:**
   - Utility: 0.757 (3rd place).
@@ -92,6 +101,7 @@
 - **Forbidden Wording:** 隱藏 high loss rate 或 3rd place ranking.
 
 ## Slide 10: Findings and Limitations
+
 - **Main Message:** 誠實評估 MVP 的侷限性。
 - **Key Bullets:**
   - Delay 只是 Proxy。
@@ -103,6 +113,7 @@
 - **Forbidden Wording:** "True RTT", "kernel-level congestion control."
 
 ## Slide 11: Demo / Reproducibility
+
 - **Main Message:** 專案受到 OpenSpec 治理，主要結果可追溯。
 - **Key Bullets:**
   - Provide Reproducibility Guide.
@@ -112,6 +123,7 @@
 - **Speaker Note Summary:** 如果教授想驗證，只要跑這幾個腳本...
 
 ## Slide 12: Conclusion & Future Work
+
 - **Main Message:** 驗證了可行性，未來可朝連續動作空間發展。
 - **Key Bullets:**
   - Feasibility proven.
